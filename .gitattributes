@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.jpg binary
+*.icns binary
+
+# Keep upstream license/source formatting.
+Resources/Vendor/* -whitespace

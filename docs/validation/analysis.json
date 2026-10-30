@@ -1,0 +1,38 @@
+{
+  "checks" : {
+    "allocatedBlocksAndSparseFile" : true,
+    "cancellationClosesDirectoryDescriptors" : true,
+    "cancelStopsBeforeFinishing" : true,
+    "cloudPolicyNoDownload" : true,
+    "depthLimitIsExplicit" : true,
+    "distributionAddsToTotal" : true,
+    "emptyDirectory" : true,
+    "entryLimitIsExplicit" : true,
+    "extensionCountsAndSizes" : true,
+    "hardLinksCountOnce" : true,
+    "hiddenScopeCanBeIncluded" : true,
+    "hiddenSubtreeExcluded" : true,
+    "incrementalProgress" : true,
+    "largeDirectoryNotCappedAtBrowserLimit" : true,
+    "largestRankedByLogicalOrAllocated" : true,
+    "mainActorRemainsResponsiveDuringScan" : true,
+    "modelStopCompletes" : true,
+    "navigationDiscardsOldScanUpdates" : true,
+    "nestedRecursiveTotal" : true,
+    "packageContentsIncluded" : true,
+    "permissionFailuresArePartialAndReported" : true,
+    "previewCloseCancelsAndRejectsLateUpdates" : true,
+    "sparseFixtureHasUnallocatedHole" : true,
+    "symbolicLinkRootRejected" : true,
+    "symlinksAndFIFOAreNotFollowed" : true,
+    "timeLimitIsExplicit" : true,
+    "unreadableRoot" : true,
+    "workerDoesNotRetainClosedPreviewModel" : true
+  },
+  "cloudTesting" : "Policy tested deterministically; no real cloud placeholder was hydrated.",
+  "measurements" : {
+    "largeScanSeconds" : 1.0645610094070435,
+    "maximumMainActorHeartbeatDelaySeconds" : 0.012602458329638466
+  },
+  "passed" : true
+}

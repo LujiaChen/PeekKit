@@ -1,0 +1,22 @@
+name: Build and scanner tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Verify runner architecture
+        run: test "$(uname -m)" = arm64
+      - name: Run scanner and model regressions
+        run: ./Tests/run.sh
+      - name: Build and verify app and extensions
+        run: ./build.sh

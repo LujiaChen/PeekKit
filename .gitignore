@@ -1,0 +1,14 @@
+.DS_Store
+._*
+.build/
+*.app/
+*.appex/
+*.dSYM/
+*.zip
+*.dmg
+*.p12
+*.p8
+*.mobileprovision
+.env
+.env.*
+!.env.example
