@@ -16,7 +16,7 @@ Apple Silicon, macOS 14+, and Xcode for building. Follow [the build guide](BUILD
 
 ## Validation and limits
 
-28 analysis/model and 22 renderer checks passed locally. Finder browsing/preview interactions were exercised. Cloud policy is unit-tested; real cloud placeholders and network/cross-volume mounts have not been integration-tested. CI will run after publication and is not yet marked passed.
+28 analysis/model and 22 renderer checks passed locally. Finder browsing/preview interactions were exercised. Cloud policy is unit-tested; real cloud placeholders and network/cross-volume mounts have not been integration-tested. The release build and scanner/model suite also passed [GitHub Actions](https://github.com/LujiaChen/PeekKit/actions/runs/41142241480) on macOS arm64.
 
 Scans are bounded to 1,000,000 entries, 128 levels and 60 seconds, with partial results retained. On disk is allocated file blocks, not exclusive or reclaimable APFS space. See the analysis and testing guides for scope.
 

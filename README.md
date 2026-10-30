@@ -50,7 +50,7 @@ Symbolic links are not followed, hard links are counted once, and other volumes 
 
 The current local build passed **28 scanner/model checks** and **22 renderer checks**, plus interactive Finder checks for browsing and previews. A 25,000-file directory completed in about 4.8 seconds through the installed Quick Look extension on the development Mac. This is an observation, not a performance guarantee.
 
-Real cloud placeholders, network/cross-volume mounts, Intel and other macOS versions have not been integration-tested. The GitHub Actions workflow will run after publication; it has not run yet. [Test scope and reproduction →](docs/TESTING.md)
+Real cloud placeholders, network/cross-volume mounts, Intel and other macOS versions have not been integration-tested. GitHub Actions also built this release and passed the scanner/model tests on macOS arm64. [CI result](https://github.com/LujiaChen/PeekKit/actions/runs/41142241480). [Test scope and reproduction →](docs/TESTING.md)
 
 ## Development
 

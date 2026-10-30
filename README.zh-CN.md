@@ -50,7 +50,7 @@ cd PeekKit
 
 本机已通过 28 项扫描/生命周期测试、22 项渲染测试，并在真实 Finder 中检查了原有浏览和预览功能。安装扩展统计 25,000 个文件约需 4.8 秒，仅代表开发机器上的一次实测。
 
-真实云端占位文件、网络及跨卷挂载、Intel 和其他 macOS 版本尚未完整实测。GitHub Actions 会在发布后运行，目前不标注为已通过。[测试说明](docs/TESTING.md)
+真实云端占位文件、网络及跨卷挂载、Intel 和其他 macOS 版本尚未完整实测。GitHub Actions 已在 macOS arm64 上构建此版本并通过扫描/模型测试。[CI 结果](https://github.com/LujiaChen/PeekKit/actions/runs/41142241480)。[测试说明](docs/TESTING.md)
 
 ## 许可证与致谢
 
