@@ -58,17 +58,17 @@ Reports: [old scanner baseline](validation/1.2/baseline-analysis.json), [new sca
 | --- | --- | --- |
 | Isolated 25,000-file scan, one local run | 1.095 s | 0.949 s |
 | Maximum main-actor heartbeat delay during model scan | 12.55 ms | 12.55 ms |
-| 20 reads of a 20,000-entry name ordering | 77.341 ms, re-sorting each time | 0.0049 ms, cached reads |
+| 20 reads of a 20,000-entry name ordering | 76.627 ms, re-sorting each time | 0.0051 ms, cached reads |
 
 The presentation microbenchmark excludes the initial background sort and SwiftUI painting. It demonstrates eliminated repeated sorting, not a claim of an equivalent end-to-end speedup. Scanner timings are single runs on a warm local filesystem, not statistical speedup evidence. Run Tests/browser.sh to reproduce the presentation comparison and Tests/run.sh for the scanner. RSS of the whole app was not benchmarked; the thumbnail cache uses an approximate 32 MB cost budget and 300-item limit. In-flight filesystem or decoder work cannot be forcibly preempted; cancellation rejects its result.
 
 ## Validation and remaining limits
 
-Local suites: **28 analysis + 24 browser + 19 content/export + 28 renderer/lifecycle checks = 99 passing checks**. The original 28 analysis and 22 renderer checks remain; the heading-markup assertion now verifies the new generated heading ID as well. New URL-fragment tests decode percent-encoded Unicode anchors before finding targets.
+Local suites: **28 analysis + 26 browser + 19 content/export + 28 renderer/lifecycle checks = 101 passing checks**. The original 28 analysis and 22 renderer checks remain; the heading-markup assertion now verifies the new generated heading ID as well. New URL-fragment tests decode percent-encoded Unicode anchors before finding targets.
 
 The locally development-signed 1.2.0 app and both extensions passed strict signature verification. The installed extension was exercised through the system QLPreviewView host: tree expansion, native Markdown Preview/Source and folder browsing worked. The previous installed 1.1 application and a byte-verified ZIP were preserved before replacement.
 
-Manual standalone checks covered tree expansion/collapse/filtering, visible ancestor context, folder ranks, contents expansion/jump, highlighted code, tables and source controls. Finder/system Quick Look integration evidence is recorded in the final release validation report. UI screenshot automation is not an accessibility audit.
+Manual standalone checks covered tree expansion/collapse/filtering, visible ancestor context, folder ranks, contents expansion/jump, highlighted code, tables and source controls. Finder Space-bar verification of this update was limited by an unavailable Finder UI window; the installed extension itself was tested through the system Quick Look host. UI screenshot automation is not an accessibility audit.
 
 Real cloud providers, network/cross-volume mounts, very slow providers, million-entry trees, Intel and clean-machine installation remain unverified. Tests cover policy and bounded synthetic cases. Data can change during a live scan; permissions can change between metadata and a framework's later access. Open With/Reveal can be constrained by Quick Look's system sandbox and destination app behavior.
 

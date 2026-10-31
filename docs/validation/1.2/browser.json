@@ -1,8 +1,8 @@
 {
   "benchmark" : {
-    "cachedPresentationReadSeconds" : 4.8750080168247223e-06,
+    "cachedPresentationReadSeconds" : 5.1250099204480648e-06,
     "entries" : 20000,
-    "legacyRepeatedSortSeconds" : 0.077340541669400409,
+    "legacyRepeatedSortSeconds" : 0.076626833324553445,
     "reads" : 20
   },
   "checks" : {
@@ -11,6 +11,7 @@
     "closedBrowserModelReleased" : true,
     "disposeRejectsLateListing" : true,
     "filterDoesNotRestartAnalysis" : true,
+    "imagePreviewDecode" : true,
     "initialListingAndFolderFirst" : true,
     "keyboardFocus" : true,
     "keyboardOpenFolder" : true,
@@ -18,6 +19,7 @@
     "markdownDetection" : true,
     "navigationCannotEscapeRoot" : true,
     "navigationRejectsStaleTreeResults" : true,
+    "pdfPreviewDecode" : true,
     "previewRejectsSymlink" : true,
     "sortModified" : true,
     "sortName" : true,

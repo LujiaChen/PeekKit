@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import ImageIO
 
 @main struct BrowserTests {
     @MainActor static func main() async throws {
@@ -59,6 +60,16 @@ import SwiftUI
             check("treePermissionError",model.treeMessages[entry.url] != nil && model.treeMessages[entry.url] != "Loading…")
         } else {check("treePermissionError",false)}
         try fm.setAttributes([.posixPermissions:0o700],ofItemAtPath:denied.path)
+        let png = base.appendingPathComponent("pixel.png")
+        let bitmap = CGContext(data:nil,width:2,height:2,bitsPerComponent:8,bytesPerRow:8,space:CGColorSpaceCreateDeviceRGB(),bitmapInfo:CGImageAlphaInfo.premultipliedLast.rawValue)!
+        bitmap.setFillColor(CGColor(red:1,green:0,blue:0,alpha:1));bitmap.fill(CGRect(x:0,y:0,width:2,height:2))
+        let destination = CGImageDestinationCreateWithURL(png as CFURL,"public.png" as CFString,1,nil)!
+        CGImageDestinationAddImage(destination,bitmap.makeImage()!,nil);let written=CGImageDestinationFinalize(destination)
+        if case .image(let image)=try PreviewPayload.load(png) {check("imagePreviewDecode",written && image.width==2 && image.height==2)}else{check("imagePreviewDecode",false)}
+        let pdfURL = base.appendingPathComponent("page.pdf");var rect=CGRect(x:0,y:0,width:100,height:100)
+        let pdfContext=CGContext(pdfURL as CFURL,mediaBox:&rect,nil)!
+        pdfContext.beginPDFPage(nil);pdfContext.fill(rect);pdfContext.endPDFPage();pdfContext.closePDF()
+        if case .pdf(let document)=try PreviewPayload.load(pdfURL) {check("pdfPreviewDecode",document.pageCount==1)}else{check("pdfPreviewDecode",false)}
         check("markdownDetection", isMarkdown(base.appendingPathComponent("x.MD")))
         model.load(base); model.dispose(); let before = model.entries.count
         try await Task.sleep(nanoseconds:100_000_000)
