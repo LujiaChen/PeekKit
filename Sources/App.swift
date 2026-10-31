@@ -33,12 +33,29 @@ import Quartz
         let panel = NSOpenPanel(); panel.canChooseDirectories = true; panel.canChooseFiles = true; panel.prompt = "Preview"
         if panel.runModal() == .OK, let url = panel.url { preview(url) }
     }
-    func show(_ window: NSWindow) { window.isReleasedWhenClosed = false; window.center(); window.makeKeyAndOrderFront(nil); windows.append(window); NSApp.activate(ignoringOtherApps:true) }
+    func show(_ window: NSWindow) { window.isReleasedWhenClosed = false; window.center(); window.makeKeyAndOrderFront(nil); windows.append(window); NSApp.activate(ignoringOtherApps:true)
+        let args = CommandLine.arguments
+        if let index = args.firstIndex(of:"--snapshot"), args.count > index+1 {
+            let path = args[index+1]
+            DispatchQueue.main.asyncAfter(deadline:.now()+4) {
+                guard let view = window.contentView, let bitmap = view.bitmapImageRepForCachingDisplay(in:view.bounds) else { NSApp.terminate(nil); return }
+                view.cacheDisplay(in:view.bounds,to:bitmap)
+                if let data = bitmap.representation(using:.png,properties:[:]) { try? data.write(to:URL(fileURLWithPath:path)) }
+                NSApp.terminate(nil)
+            }
+        }
+    }
     func preview(_ url: URL) {
         let window = NSWindow(contentRect: NSRect(x:0,y:0,width:900,height:680),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
         window.title = "\(url.lastPathComponent) — PeekKit"; window.minSize = NSSize(width:620,height:440)
-        if (try? url.resourceValues(forKeys:[.isDirectoryKey]).isDirectory) == true {
-            window.contentView = NSHostingView(rootView: FolderBrowser(model: FolderModel(root:url)))
+        if CommandLine.arguments.contains("--inspector") {
+            window.contentView = NSHostingView(rootView:FileInspectorView(url:url))
+        } else if (try? url.resourceValues(forKeys:[.isDirectoryKey]).isDirectory) == true {
+            let model = FolderModel(root:url, preferences:CommandLine.arguments.contains("--snapshot") ? UserDefaults(suiteName:"PeekKit.Screenshot")! : .standard)
+            if CommandLine.arguments.contains("--list-demo") { model.mode = "List" }
+            window.contentView = NSHostingView(rootView: FolderBrowser(model:model))
+        } else if ArchiveReader.recognizes(url) {
+            window.contentView = NSHostingView(rootView:ArchiveBrowser(url:url))
         } else if isMarkdown(url) {
             window.contentView = NSHostingView(rootView: MarkdownContent(url:url))
         } else {
@@ -48,7 +65,7 @@ import Quartz
         }
         show(window)
     }
-    func application(_ sender: NSApplication, openFiles filenames: [String]) { filenames.forEach { preview(URL(fileURLWithPath:$0)) }; sender.reply(toOpenOrPrint:.success) }
+    func application(_ sender: NSApplication, openFiles filenames: [String]) { if CommandLine.arguments.contains("--snapshot") { sender.reply(toOpenOrPrint:.success); return }; filenames.forEach { preview(URL(fileURLWithPath:$0)) }; sender.reply(toOpenOrPrint:.success) }
 }
 struct WelcomeView: View {
     let choose: () -> Void

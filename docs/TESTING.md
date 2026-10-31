@@ -58,3 +58,7 @@ Real cloud placeholders/provider hydration, actual network or cross-volume mount
 The workflow builds the application and runs scanner/model tests on a macOS arm64 runner. It does not install the app, test real Finder integration, access cloud files or publish releases. The initial release passed its GitHub Actions build and scanner/model tests on 2026-10-30: [verified run](https://github.com/LujiaChen/PeekKit/actions/runs/41142241480). The workflow does not cover renderer UI or Finder interactions.
 
 Runner reference: [GitHub-hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+
+## 1.3 final release suites
+
+Run Tests/registration.sh, Tests/run.sh, Tests/archive.sh, Tests/browser.sh, build.sh, Tests/content.sh and Tools/test-renderer.sh from a clean checkout. Final local total: 158 passed, 0 failed. CI runs all six suites and both extension builds. [Final Finder matrix, measurements and limitations](VALIDATION-1.3.md).

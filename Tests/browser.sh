@@ -6,5 +6,5 @@ mkdir -p "$(dirname "$REPORT")"
 TEMP="$(mktemp -d "${TMPDIR:-/tmp}/peekkit-browser.XXXXXX")"
 trap 'chmod -R u+rwX "$TEMP" 2>/dev/null || true; rm -rf "$TEMP"' EXIT
 FILES=(); for F in "$ROOT"/Sources/*.swift; do [[ "$F" == */App.swift ]] || FILES+=("$F"); done
-xcrun swiftc -O -swift-version 5 -module-cache-path "$TEMP/cache" -parse-as-library "${FILES[@]}" "$ROOT/Tests/BrowserTests.swift" -o "$TEMP/tests"
+xcrun swiftc -I "$ROOT/Vendor/LibArchive" -O -swift-version 5 -module-cache-path "$TEMP/cache" -parse-as-library "${FILES[@]}" "$ROOT/Tests/BrowserTests.swift" -o "$TEMP/tests"
 "$TEMP/tests" "$TEMP/fixtures" "$REPORT"

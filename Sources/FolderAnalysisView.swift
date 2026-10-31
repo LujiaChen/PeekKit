@@ -4,7 +4,7 @@ import AppKit
 struct FolderAnalysisView: View {
     @ObservedObject var analysis: FolderAnalysisModel
     let previewFile: (URL) -> Void
-    @State private var expanded = false
+    @State private var expanded = CommandLine.arguments.contains("--analysis-demo")
     @State private var tab = "File types"
     @State private var copied = false
     @State private var metric: AnalysisMetric = .allocated

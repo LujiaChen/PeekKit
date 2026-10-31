@@ -17,9 +17,9 @@
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.2.0</string>
+	<string>1.3.0</string>
 	<key>CFBundleVersion</key>
-	<string>5</string>
+	<string>6</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>NSExtension</key>
@@ -31,6 +31,13 @@
 			<key>QLSupportedContentTypes</key>
 			<array>
 				<string>public.folder</string>
+<string>public.zip-archive</string>
+<string>public.tar-archive</string>
+<string>org.gnu.gnu-zip-archive</string>
+<string>org.gnu.gnu-zip-tar-archive</string>
+<string>public.bzip2-archive</string>
+<string>public.tar-bzip2-archive</string>
+
 			</array>
 			<key>QLSupportsSearchableItems</key>
 			<false/>
