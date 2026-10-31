@@ -11,7 +11,7 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 ## New in 1.2.0
 
 - Expand a bounded folder tree; filter loaded names without rescanning disk. Lists include file type, size and modification date.
-- Navigate with arrow keys and Return; use ⌘[ for Back, ⌘F for filtering, ⌘R for refresh, and ⇧⌘. for hidden files.
+- Navigate in the focused browser with arrow keys and Return (command shortcuts depend on the Quick Look host); use ⌘[ for Back, ⌘F for filtering, ⌘R for refresh, and ⇧⌘. for hidden files.
 - Context actions: Reveal in Finder, Copy Path, Open in Default App and Open With.
 - Compare largest files **and nested folders**, see storage shares, and copy an analysis summary as JSON or spreadsheet-safe CSV.
 - Shared offline Markdown rendering with bounded lexical code highlighting, improved tables/quotes and clickable contents in HTML previews.

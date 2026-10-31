@@ -26,6 +26,8 @@ Grid, list and tree are alternate presentations of the current directory. Tree c
 | Expand / enter, collapse / back | Right / Left |
 | Open focused entry | Return |
 
+Command shortcuts depend on the hosting window. In the system QLPreviewView test host, ⌘[ was consumed before the extension could act; use the visible Back button there. The model-level arrow/Return behavior is covered automatically; full keyboard delivery through every Finder host is not guaranteed.
+
 Click disclosure arrows to expand without changing the current directory; click a folder's name to enter it. Context menus offer Reveal in Finder, Copy Path, Open in Default App and Open With. Open With uses the native application chooser. View and sort preferences persist locally; search text and hidden scope reset with a new browser session.
 
 Tree bounds: 2,000 immediate children per expansion, 10,000 cached child entries, 64 levels. The main browser still lists up to 20,000 immediate entries. Limits are shown with directions to open a subfolder. Tree state is cleared on navigation, hidden-scope changes and refresh. Cancelled expansion results cannot populate a replacement directory.
@@ -63,6 +65,8 @@ The presentation microbenchmark excludes the initial background sort and SwiftUI
 ## Validation and remaining limits
 
 Local suites: **28 analysis + 24 browser + 19 content/export + 28 renderer/lifecycle checks = 99 passing checks**. The original 28 analysis and 22 renderer checks remain; the heading-markup assertion now verifies the new generated heading ID as well. New URL-fragment tests decode percent-encoded Unicode anchors before finding targets.
+
+The locally development-signed 1.2.0 app and both extensions passed strict signature verification. The installed extension was exercised through the system QLPreviewView host: tree expansion, native Markdown Preview/Source and folder browsing worked. The previous installed 1.1 application and a byte-verified ZIP were preserved before replacement.
 
 Manual standalone checks covered tree expansion/collapse/filtering, visible ancestor context, folder ranks, contents expansion/jump, highlighted code, tables and source controls. Finder/system Quick Look integration evidence is recorded in the final release validation report. UI screenshot automation is not an accessibility audit.
 
