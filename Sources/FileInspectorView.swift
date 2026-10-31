@@ -17,7 +17,7 @@ struct FileInspectorView: View {
                 Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 8) {
                     row("Name", result.name)
                     row("Extension", result.fileExtension.isEmpty ? "—" : result.fileExtension)
-                    row("Type identifier", result.type ?? (result.isSymlink ? "Symbolic link" : "Unavailable"))
+                    row("Type from extension", result.type ?? (result.isSymlink ? "Symbolic link" : "Unavailable"))
                     row("Size", fileSize(result.logicalBytes))
                     row("Allocated blocks", fileSize(result.allocatedBytes))
                     row("Created", result.created.formatted())

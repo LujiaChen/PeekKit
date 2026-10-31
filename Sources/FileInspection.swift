@@ -1,5 +1,6 @@
 import Foundation
 import Darwin
+import UniformTypeIdentifiers
 
 /// Reads filesystem metadata without opening file contents or following symlinks.
 struct PeekKitInspection: Sendable {
@@ -23,7 +24,7 @@ struct PeekKitInspection: Sendable {
         }
         let isLink = info.st_mode & S_IFMT == S_IFLNK
         let blocks = max(0, Int64(info.st_blocks)).multipliedReportingOverflow(by: 512)
-        let type = isLink ? nil : (try? url.resourceValues(forKeys: [.contentTypeKey]).contentType?.identifier)
+        let type = isLink || url.pathExtension.isEmpty ? nil : UTType(filenameExtension: url.pathExtension)?.identifier
         try Task<Never, Never>.checkCancellation()
         return PeekKitInspection(path: url.path, name: url.lastPathComponent,
                               fileExtension: url.pathExtension, type: type,
