@@ -95,7 +95,7 @@ struct FolderAnalysisView: View {
     }
     private func largest(_ s: FolderAnalysisSnapshot) -> some View {
         LazyVStack(spacing: 7) {
-            if s.largest(metric).isEmpty { Text("No local readable files in this scope.").foregroundStyle(.secondary).padding(18) }
+            if (tab == "Folders" ? s.largestFolders(metric) : s.largest(metric)).isEmpty { Text(tab == "Folders" ? "No measured subfolders in this scope." : "No local readable files in this scope.").foregroundStyle(.secondary).padding(18) }
             if tab == "Folders" { Text("Nested folder totals overlap. Hard links belong to their first visited directory. Unfinished or omitted contents are marked partial.").font(.caption2).foregroundStyle(.secondary) }
             ForEach(tab == "Folders" ? s.largestFolders(metric) : s.largest(metric)) { file in
                 Button { if file.isDirectory { NSWorkspace.shared.activateFileViewerSelecting([file.url]) } else { previewFile(file.url) } } label: {

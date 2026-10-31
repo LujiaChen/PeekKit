@@ -13,6 +13,8 @@ import Foundation
         check("folderOverlapNotAddedToTotal",s.logicalBytes==4096 && s.fileCount==1)
         let decoded=try JSONSerialization.jsonObject(with:Data(s.jsonSummary().utf8)) as! [String:Any]
         check("jsonRoundTrip",decoded["schemaVersion"] as? Int == 1 && (decoded["totals"] as? [String:Any])?["files"] as? Int == 1)
+        let exportedFiles=decoded["largestFilesBySize"] as? [[String:Any]]
+        check("exportedEntryCounts",s.largestLogical.allSatisfy{$0.fileCount==1} && s.largestAllocated.allSatisfy{$0.fileCount==1} && s.largestLogicalFolders.allSatisfy{$0.fileCount==1} && exportedFiles?.first?["measuredFiles"] as? Int == 1 && s.csvSummary().contains("\"file_size\",\"nested/deep/item.dat\",\"1\""))
         var unsafe=s;unsafe.issues=[AnalysisIssue(path:"=1+1,\"\n",message:"@formula")]
         check("csvEscapesAndNeutralizesFormula",unsafe.csvSummary().contains("\"'=1+1,\"\"\n\"") && unsafe.csvSummary().contains("'@formula"))
         var limited=FolderAnalysisOptions();limited.maximumEntries=2

@@ -30,7 +30,7 @@ struct AnalyzedFile: Identifiable, Sendable {
     let allocatedBytes: Int64
     var isDirectory = false
     var partial = false
-    var fileCount = 0
+    var fileCount = 1
     func bytes(_ metric: AnalysisMetric) -> Int64 { metric == .logical ? logicalBytes : allocatedBytes }
 }
 struct AnalyzedType: Identifiable, Sendable {

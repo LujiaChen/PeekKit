@@ -2,6 +2,7 @@
   "checks" : {
     "csvEscapesAndNeutralizesFormula" : true,
     "emptyMarkdownState" : true,
+    "exportedEntryCounts" : true,
     "folderOverlapNotAddedToTotal" : true,
     "folderRecursiveSizes" : true,
     "highlightSizeBound" : true,

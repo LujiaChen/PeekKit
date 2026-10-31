@@ -64,7 +64,7 @@ The presentation microbenchmark excludes the initial background sort and SwiftUI
 
 ## Validation and remaining limits
 
-Local suites: **28 analysis + 26 browser + 19 content/export + 28 renderer/lifecycle checks = 101 passing checks**. The original 28 analysis and 22 renderer checks remain; the heading-markup assertion now verifies the new generated heading ID as well. New URL-fragment tests decode percent-encoded Unicode anchors before finding targets.
+Local suites: **28 analysis + 26 browser + 20 content/export + 28 renderer/lifecycle checks = 102 passing checks**. The original 28 analysis and 22 renderer checks remain; the heading-markup assertion now verifies the new generated heading ID as well. New URL-fragment tests decode percent-encoded Unicode anchors before finding targets.
 
 The locally development-signed 1.2.0 app and both extensions passed strict signature verification. The installed extension was exercised through the system QLPreviewView host: tree expansion, native Markdown Preview/Source and folder browsing worked. The previous installed 1.1 application and a byte-verified ZIP were preserved before replacement.
 
