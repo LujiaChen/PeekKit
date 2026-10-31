@@ -68,7 +68,7 @@ Local suites: **28 analysis + 26 browser + 19 content/export + 28 renderer/lifec
 
 The locally development-signed 1.2.0 app and both extensions passed strict signature verification. The installed extension was exercised through the system QLPreviewView host: tree expansion, native Markdown Preview/Source and folder browsing worked. The previous installed 1.1 application and a byte-verified ZIP were preserved before replacement.
 
-Manual standalone checks covered tree expansion/collapse/filtering, visible ancestor context, folder ranks, contents expansion/jump, highlighted code, tables and source controls. Finder Space-bar verification of this update was limited by an unavailable Finder UI window; the installed extension itself was tested through the system Quick Look host. UI screenshot automation is not an accessibility audit.
+Manual standalone checks covered tree expansion/collapse/filtering, visible ancestor context, folder ranks, contents expansion/jump, highlighted code, tables, source controls and light/dark appearances. Finder Space-bar verification of this update was limited by an unavailable Finder UI window; the installed extension itself was tested through the system Quick Look host. UI screenshot automation is not an accessibility audit.
 
 Real cloud providers, network/cross-volume mounts, very slow providers, million-entry trees, Intel and clean-machine installation remain unverified. Tests cover policy and bounded synthetic cases. Data can change during a live scan; permissions can change between metadata and a framework's later access. Open With/Reveal can be constrained by Quick Look's system sandbox and destination app behavior.
 

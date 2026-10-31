@@ -59,9 +59,9 @@ cd PeekKit
 
 ## 测试
 
-1.2 已通过 101 项检查：28 项分析、26 项浏览/预览、19 项内容/导出安全、28 项渲染/生命周期测试，并在真实 Finder 中检查了原有浏览和预览功能。安装扩展统计 25,000 个文件约需 4.8 秒，仅代表开发机器上的一次实测。
+1.2 已通过 101 项检查：28 项分析、26 项浏览/预览、19 项内容/导出安全、28 项渲染/生命周期测试。手动检查覆盖已安装扩展的系统 Quick Look 宿主，以及独立窗口的浅色和深色界面。本次 Finder 空格键操作因自动化窗口连接问题未能完整验证。25,000 个文件的单次本地扫描测量为修改前 1.095 秒、修改后 0.949 秒，不代表统计意义上的性能提升。[测量及验证边界](docs/UPGRADE-1.2.md)
 
-真实云端占位文件、网络及跨卷挂载、Intel 和其他 macOS 版本尚未完整实测。GitHub Actions 已在 macOS arm64 上构建此版本并通过扫描/模型测试。[CI 结果](https://github.com/LujiaChen/PeekKit/actions/workflows/ci.yml)。[测试说明](docs/TESTING.md)
+真实云端占位文件、网络及跨卷挂载、Intel 和其他 macOS 版本尚未完整实测。GitHub Actions 已在 macOS arm64 上构建主程序和两个扩展，并通过全部四组测试。[CI 结果](https://github.com/LujiaChen/PeekKit/actions/workflows/ci.yml)。[测试说明](docs/TESTING.md)
 
 ## 许可证与致谢
 

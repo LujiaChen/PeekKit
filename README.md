@@ -59,9 +59,9 @@ Symbolic links are not followed, hard links are counted once, and other volumes 
 
 ## Validation
 
-Version 1.2 passed **101 checks: 28 analysis, 26 browser/preview, 19 content/export/security and 28 renderer/lifecycle**, plus interactive Finder checks for browsing and previews. A 25,000-file directory completed in about 4.8 seconds through the installed Quick Look extension on the development Mac. This is an observation, not a performance guarantee.
+Version 1.2 passed **101 checks: 28 analysis, 26 browser/preview, 19 content/export/security and 28 renderer/lifecycle**. Manual checks exercised the installed extensions through the system Quick Look host and the standalone interface in light and dark appearances. Finder Space-bar verification of this update was limited by an unavailable automation window. The reproducible 25,000-file scanner measurement was 1.095 seconds before / 0.949 seconds after in one local run; this is not a statistical speedup claim. [Measurements and validation limits →](docs/UPGRADE-1.2.md)
 
-Real cloud placeholders, network/cross-volume mounts, Intel and other macOS versions have not been integration-tested. GitHub Actions also built this release and passed the scanner/model tests on macOS arm64. [CI result](https://github.com/LujiaChen/PeekKit/actions/workflows/ci.yml). [Test scope and reproduction →](docs/TESTING.md)
+Real cloud placeholders, network/cross-volume mounts, Intel and other macOS versions have not been integration-tested. GitHub Actions also built the app and both extensions and passed all four test suites on macOS arm64. [CI result](https://github.com/LujiaChen/PeekKit/actions/workflows/ci.yml). [Test scope and reproduction →](docs/TESTING.md)
 
 ## Development
 
