@@ -8,7 +8,7 @@
 
 ![PeekKit 文件夹分析](docs/images/folder-analysis.jpg)
 
-## 1.3.0 候选版本
+## 1.3.0 正式源码版
 
 - 新增 ZIP（存储/Deflate）、TAR、TGZ、TBZ2 树形和目录浏览、路径搜索，以及离线文本、图片、PDF 和有界 Markdown 预览。
 - 压缩流先在输出预算内展开，再预检 TAR/ZIP 头部；禁用 XZ、7z、RAR。协作式时间限制不等于硬 CPU/RSS 上限。

@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "checks": {
+    "declares_public.folder": true,
+    "declares_public.zip-archive": true,
+    "declares_public.tar-archive": true,
+    "declares_org.gnu.gnu-zip-archive": true,
+    "declares_org.gnu.gnu-zip-tar-archive": true,
+    "declares_public.bzip2-archive": true,
+    "declares_public.tar-bzip2-archive": true,
+    "consistentReleaseVersions": true,
+    "nativeQuickLookController": true,
+    "sandboxWithoutNetwork": true
+  }
+}

@@ -31,8 +31,8 @@
   },
   "cloudTesting" : "Policy tested deterministically; no real cloud placeholder was hydrated.",
   "measurements" : {
-    "largeScanSeconds" : 1.0322930812835693,
-    "maximumMainActorHeartbeatDelaySeconds" : 0.013901416677981615
+    "largeScanSeconds" : 0.99387097358703613,
+    "maximumMainActorHeartbeatDelaySeconds" : 0.01258533334475942
   },
   "passed" : true
 }

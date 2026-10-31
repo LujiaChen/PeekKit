@@ -39,13 +39,13 @@
     "zipPreview" : true
   },
   "metrics" : {
-    "cancellationSeconds" : 2.045833389274776e-05,
-    "largeTar5000Seconds" : 0.023807874997146428,
-    "largeZip8MiBSeconds" : 0.0025824583426583558,
+    "cancellationSeconds" : 1.5375000657513738e-05,
+    "largeTar5000Seconds" : 0.021941291663097218,
+    "largeZip8MiBSeconds" : 0.0022849999950267375,
     "os" : "Version 27.2 (Build 26B123)",
-    "peakRSSBytes" : 240730112,
+    "peakRSSBytes" : 240762880,
     "processors" : 10,
-    "twentyZipPreviewsSeconds" : 0.0012653333251364529
+    "twentyZipPreviewsSeconds" : 0.0011550000053830445
   },
   "passed" : true
 }

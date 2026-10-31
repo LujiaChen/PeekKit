@@ -8,7 +8,7 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
-## 1.3.0 release candidate
+## 1.3.0 — Archive Browsing & File Inspector
 
 - Browse ZIP (store/deflate), TAR, TGZ and TBZ2 in a tree or directory list, search paths, and preview text, images, PDFs and bounded Markdown offline.
 - Archive parsing now preflights ZIP local/central headers and TAR metadata before native parsing, with bounded filter expansion. XZ/7z/RAR are disabled.

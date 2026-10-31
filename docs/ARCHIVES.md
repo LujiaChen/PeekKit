@@ -1,6 +1,6 @@
-# Archive support and safety — 1.3 release candidate
+# Archive support and safety — 1.3.0
 
-Source release candidate. Finder registration has been added to the existing folder extension for ZIP, TAR, gzip and bzip2 content types. ArchiveBrowser is shared with standalone and folder file-detail paths. Standalone rendering is verified; system-host and Finder verification scope is recorded in VALIDATION-1.3.md.
+Stable source release. Finder registration has been added to the existing folder extension for ZIP, TAR, gzip and bzip2 content types. ArchiveBrowser is shared with standalone and folder file-detail paths. Standalone rendering is verified; system-host and Finder verification scope is recorded in VALIDATION-1.3.md.
 
 Backend: public libarchive C API linked to the macOS SDK libarchive stub/system library. No private Apple API, subprocess or network is used by the application. Public headers are from upstream v3.7.7; this does not pin or bundle the system decoder version. Updating macOS supplies system-library fixes. Header license is retained in Vendor/LibArchive/COPYING. Header hashes/source URLs are in PROVENANCE.md.
 

@@ -50,3 +50,7 @@ Finder runs the extensions on demand. No global hotkey listener, login item, dae
 FolderEntry and FolderOrdering are immutable metadata/ordering helpers; FolderModel owns listing, tree requests, cached presentation and cancellation generations. LocalFilePolicy is shared by browsing and explicit content previews. PreviewPayload performs bounded text/PDF/image work on a worker. AnalysisExport serializes scope and bounded results without filesystem writes.
 
 For production signing, set PEEKKIT_SIGN_IDENTITY to a Developer ID Application identity. Tools/package.sh /path/to/PeekKit.app /new/output/directory additionally requires PEEKKIT_NOTARY_PROFILE naming an existing notarytool keychain profile. It verifies notarization/stapling/Gatekeeper before producing the notarized ZIP. This credentialed path remains untested locally; no secrets are needed for default builds or CI.
+
+## 1.3 stable source build
+
+The existing build command builds the app and both extensions. ArchiveReader preflights ZIP/TAR metadata and bounded raw GZip/BZip2 output; the existing folder extension additionally registers the concrete TGZ/TBZ2 types. No new service, paid credential or notarized binary is required. See [archive architecture](ARCHIVES.md) and [final validation](VALIDATION-1.3.md).

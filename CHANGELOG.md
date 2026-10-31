@@ -1,9 +1,11 @@
 # Changelog
 
-## 1.3.0 — release candidate
+## 1.3.0 — Archive Browsing & File Inspector
+
+- Fix concrete TGZ/TBZ2 Quick Look type registration; final Finder checks cover supported archives and filename aliases.
 
 - Add an asynchronous metadata-only file information panel for existing file previews.
-- Development archive tree/directory browsing, search, sorting and bounded in-memory previews for ZIP/TAR/GZip/BZip2 TAR. Unsafe entries fail closed.
+- Archive tree/directory browsing, search, sorting and bounded in-memory previews for ZIP/TAR/GZip/BZip2 TAR. Unsafe entries fail closed.
 - Persisted Type/Modified/Size list-column toggles; bounded local image/PDF inspector metadata.
 - Bounded raw filter expansion, fixed-header TAR preflight and ZIP local/central consistency checks; malicious metadata and compressed-header bomb regressions.
 - Native safe Markdown previews for selected entries; cancellation controls and expanded cached list columns.
