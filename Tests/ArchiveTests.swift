@@ -23,7 +23,7 @@ import Darwin
             check("official"+codec+"7z", try ArchiveReader.preview(root.appendingPathComponent("official-"+codec+".7z"),path:"nested/你好.txt") == Data("hello".utf8))
         }
         for name in ["official-encrypted","official-dictionary"] {
-            do { _ = try ArchiveReader.list(root.appendingPathComponent(name+".7z")); check(name+"Rejected",false) } catch { check(name+"Rejected",true) }
+            do { _ = try ArchiveReader.list(root.appendingPathComponent(name+".7z")); check(name+"Rejected",false) } catch { check(name+"Rejected", name != "official-encrypted" || error.localizedDescription.contains("encrypted")) }
         }
         let sevenStart = ProcessInfo.processInfo.systemUptime
         check("large7zOutput",try ArchiveReader.preview(root.appendingPathComponent("large.7z"),path:"large.txt").count == 8*1024*1024)

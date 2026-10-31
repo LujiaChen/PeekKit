@@ -91,6 +91,7 @@ enum SevenZipReader {
             let flags = try c.byte(), length = Int(flags & 15)
             guard length > 0, length <= 4, flags & 0xd0 == 0 else { throw fail("complex/filter-chain coders are unsupported") }
             let method = try c.bytes(length)
+            guard [Data([0]), Data([0x03,0x01,0x01]), Data([0x21])].contains(method) else { throw fail("unsupported codec/filter chain or encrypted archive") }
             let properties = flags & 0x20 != 0 ? try c.bytes(c.uint(5)) : Data()
             let coder = Coder(method:method,properties:properties); try validate(coder); s.coders.append(coder)
         }
