@@ -87,7 +87,7 @@ enum SevenZipReader {
         let folders = try c.uint(20_000); guard folders == count else { throw fail("one packed stream per folder required") }
         try c.expect(0) // no external coder metadata
         for _ in 0..<folders {
-            try checkpoint(); guard try c.uint(1) == 1 else { throw fail("only one coder per folder is supported") }
+            try checkpoint(); guard try c.uint(64) == 1 else { throw fail("only one coder per folder is supported; filter chains/encrypted archives are unsupported") }
             let flags = try c.byte(), length = Int(flags & 15)
             guard length > 0, length <= 4, flags & 0xd0 == 0 else { throw fail("complex/filter-chain coders are unsupported") }
             let method = try c.bytes(length)
