@@ -14,9 +14,44 @@ struct ArchiveBrowser: View {
     @State private var rows: [ArchiveItem] = []
     @State private var selected: ArchiveItem?
     @State private var focused: String?
+    private var presentationID: String { [current,query,sort,String(tree),expanded.sorted().joined(separator:"|"),String(listing?.items.count ?? -1)].joined(separator:"|") }
     var body: some View {
         VStack(spacing:12) {
-            HStack {
+            toolbar
+            if let selected { ArchiveEntryPreview(url:url,entry:selected).id(selected.path) }
+            else if let listing {
+                HStack { Image(systemName:"magnifyingglass"); TextField("Search archive paths",text:$query).textFieldStyle(.roundedBorder) }
+                Text("\(listing.format) · \(fileSize(Int64(listing.compressedBytes))) archive · \(listing.items.count) nodes").font(.caption).foregroundStyle(.secondary)
+                contentRows
+                HStack { Button("Archive root") { current = "" }; Text(current).lineLimit(1); Spacer(); Text("Uncompressed sizes · no disk extraction").foregroundStyle(.secondary) }.font(.caption)
+            } else if let error { ContentUnavailableView("Unable to read archive",systemImage:"archivebox",description:Text(error)) }
+            else { ProgressView("Validating archive…") ; Spacer() }
+        }.padding(16).frame(minWidth:600,maxWidth:.infinity,minHeight:400,maxHeight:.infinity)
+        .task(id:url) {
+            let worker = Task.detached(priority:.userInitiated) { try ArchiveReader.list(url) }
+            do { let value = try await withTaskCancellationHandler(operation:{try await worker.value},onCancel:{worker.cancel()}); if !Task.isCancelled { listing = value } }
+            catch { if !Task.isCancelled { self.error = error.localizedDescription } }
+        }
+        .task(id: presentationID) {
+            let items = listing?.items ?? []; let root = current; let search = query; let mode = tree; let open = expanded; let ordering = sort
+            let worker = Task.detached { items.filter { item in
+                if !search.isEmpty { return item.path.localizedStandardContains(search) }
+                if !mode { return item.parent == root }
+                let parts = item.path.split(separator:"/")
+                return (1..<parts.count).allSatisfy { open.contains(parts.prefix($0).joined(separator:"/")) }
+            }.sorted { a,b in
+                if mode { return a.path.localizedStandardCompare(b.path) == .orderedAscending }
+                if a.directory != b.directory { return a.directory }
+                if ordering == "Size", a.size != b.size { return a.size > b.size }
+                if ordering == "Modified", a.modified != b.modified { return (a.modified ?? .distantPast) > (b.modified ?? .distantPast) }
+                if ordering == "Type", (a.path as NSString).pathExtension != (b.path as NSString).pathExtension { return (a.path as NSString).pathExtension < (b.path as NSString).pathExtension }
+                return a.path.localizedStandardCompare(b.path) == .orderedAscending
+            } }
+            let result = await withTaskCancellationHandler(operation:{await worker.value},onCancel:{worker.cancel()}); if !Task.isCancelled { rows = result }
+        }
+    }
+    private var toolbar: some View {
+HStack {
                 Button { if selected != nil { selected = nil } else { current = (current as NSString).deletingLastPathComponent } } label: { Image(systemName:"chevron.left") }.disabled(selected == nil && current.isEmpty).accessibilityLabel("Back")
                 Image(systemName:"archivebox.fill").foregroundStyle(.blue)
                 Text(url.lastPathComponent).font(.headline).lineLimit(1)
@@ -24,11 +59,9 @@ struct ArchiveBrowser: View {
                 Toggle("Tree",isOn:$tree).toggleStyle(.button)
                 Picker("Sort",selection:$sort) { ForEach(["Name","Size","Type","Modified"],id:\.self) { Text($0) } }.frame(width:125).disabled(tree).help("Field sorting is available in directory view")
             }
-            if let selected { ArchiveEntryPreview(url:url,entry:selected).id(selected.path) }
-            else if let listing {
-                HStack { Image(systemName:"magnifyingglass"); TextField("Search archive paths",text:$query).textFieldStyle(.roundedBorder) }
-                Text("\(listing.format) · \(fileSize(Int64(listing.compressedBytes))) archive · \(listing.items.count) nodes").font(.caption).foregroundStyle(.secondary)
-                ScrollViewReader { proxy in
+    }
+    private var contentRows: some View {
+ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(spacing:2) {
                             ForEach(rows) { item in
@@ -57,32 +90,6 @@ struct ArchiveBrowser: View {
                     }.onKeyPress(.return) { if let item = rows.first(where:{$0.path == focused}) { open(item) }; return .handled }
                      .onChange(of:focused) { _,value in if let value { proxy.scrollTo(value) } }
                 }
-                HStack { Button("Archive root") { current = "" }; Text(current).lineLimit(1); Spacer(); Text("Uncompressed sizes · no disk extraction").foregroundStyle(.secondary) }.font(.caption)
-            } else if let error { ContentUnavailableView("Unable to read archive",systemImage:"archivebox",description:Text(error)) }
-            else { ProgressView("Validating archive…") ; Spacer() }
-        }.padding(16).frame(minWidth:600,maxWidth:.infinity,minHeight:400,maxHeight:.infinity)
-        .task(id:url) {
-            let worker = Task.detached(priority:.userInitiated) { try ArchiveReader.list(url) }
-            do { let value = try await withTaskCancellationHandler(operation:{try await worker.value},onCancel:{worker.cancel()}); if !Task.isCancelled { listing = value } }
-            catch { if !Task.isCancelled { self.error = error.localizedDescription } }
-        }
-        .task(id: current+"|"+query+"|"+sort+"|"+String(tree)+"|"+expanded.sorted().joined(separator:"|")+"|"+String(listing?.items.count ?? -1)) {
-            let items = listing?.items ?? []; let root = current; let search = query; let mode = tree; let open = expanded; let ordering = sort
-            let worker = Task.detached { items.filter { item in
-                if !search.isEmpty { return item.path.localizedStandardContains(search) }
-                if !mode { return item.parent == root }
-                let parts = item.path.split(separator:"/")
-                return (1..<parts.count).allSatisfy { open.contains(parts.prefix($0).joined(separator:"/")) }
-            }.sorted { a,b in
-                if mode { return a.path.localizedStandardCompare(b.path) == .orderedAscending }
-                if a.directory != b.directory { return a.directory }
-                if ordering == "Size", a.size != b.size { return a.size > b.size }
-                if ordering == "Modified", a.modified != b.modified { return (a.modified ?? .distantPast) > (b.modified ?? .distantPast) }
-                if ordering == "Type", (a.path as NSString).pathExtension != (b.path as NSString).pathExtension { return (a.path as NSString).pathExtension < (b.path as NSString).pathExtension }
-                return a.path.localizedStandardCompare(b.path) == .orderedAscending
-            } }
-            let result = await withTaskCancellationHandler(operation:{await worker.value},onCancel:{worker.cancel()}); if !Task.isCancelled { rows = result }
-        }
     }
     private func open(_ item: ArchiveItem) {
         focused = item.path
