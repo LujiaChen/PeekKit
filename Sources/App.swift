@@ -11,6 +11,7 @@ import Quartz
     var selfTest: RendererSelfTest?
     func applicationDidFinishLaunching(_ notification: Notification) {
         let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--appearance"), args.count > i+1 { NSApp.appearance = NSAppearance(named: args[i+1] == "light" ? .aqua : .darkAqua) }
         if let i = args.firstIndex(of: "--quicklook-test"), args.count > i+1 {
             let preview = QLPreviewView(frame:NSRect(x:0,y:0,width:900,height:680),style:.normal)!
             let window = NSWindow(contentRect:preview.frame,styleMask:[.titled,.closable,.resizable],backing:.buffered,defer:false)
@@ -57,7 +58,7 @@ struct WelcomeView: View {
             Image(nsImage: NSApplication.shared.applicationIconImage).resizable().frame(width:92,height:92)
             VStack(spacing:8) { Text("A closer look, with Space.").font(.system(size:28,weight:.bold)); Text("Folders and Markdown, together.").font(.title3).foregroundStyle(.secondary) }
             HStack(alignment:.top,spacing:22) {
-                feature("folder.fill","Explore folders","Browse subfolders in a grid or list. Preview images, PDFs, text, and Markdown.")
+                feature("folder.fill","Explore folders","Browse a grid, list or tree. Analyze storage and preview images, PDFs, text, and Markdown.")
                 feature("doc.richtext","Read Markdown","Formatted headings, tables, code, and checklists. Switch to the original source.")
             }
             VStack(alignment:.leading,spacing:12) {

@@ -24,3 +24,8 @@ tr:nth-child(2n) { background:var(--soft); } hr { border:0; height:1px; backgrou
 img { max-width:100%; height:auto; } input[type=checkbox] { accent-color:var(--accent); margin-right:.4em; } .image-placeholder { display:inline-block; color:var(--muted); background:var(--soft); border:1px dashed var(--line); border-radius:6px; padding:8px 12px; font-size:.85em; }
 #empty { text-align:center; color:var(--muted); margin:70px 0; }
 @media(max-width:550px) { main { padding:24px 22px 50px; } header { padding:0 16px; gap:8px; } #reading-time { display:none; } h1 { font-size:1.75em; } }
+
+.toc { border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin-bottom:24px; font-size:.88em; } .toc summary { cursor:pointer; font-weight:600; } .toc nav a { display:block; padding:3px 0; } .toc-level-3,.toc-level-4,.toc-level-5,.toc-level-6 { margin-left:16px; }
+.tok-keyword { color:#a626a4; font-weight:600; } .tok-string { color:#287b32; } .tok-comment { color:#6e7781; font-style:italic; } .tok-number { color:#986801; }
+@media(prefers-color-scheme:dark) { .tok-keyword { color:#d2a8ff; } .tok-string { color:#a5d6ff; } .tok-comment { color:#8b949e; } .tok-number { color:#ffa657; } }
+blockquote { background:var(--soft); border-left-color:var(--accent); border-radius:0 6px 6px 0; padding:10px 16px; } blockquote>:last-child { margin-bottom:0; } th { position:sticky; top:0; } td { vertical-align:top; }

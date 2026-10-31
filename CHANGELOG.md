@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 — browsing, analysis and offline rendering
+
+- Lazy, bounded tree view; typed list column, type sorting, contextual open/reveal/copy actions and keyboard navigation.
+- Cached visible rows computed on a worker; searching does not restart filesystem scans.
+- Recursive top folders alongside top files; overlapping totals and incomplete folders labeled; JSON/CSV clipboard summaries include scope and omissions.
+- Shared escaped-HTML Markdown body, bounded lexical highlighting and HTML table of contents, with source-view keyboard support.
+- Local residency checks shared by browser and previews; background PDF/image/text/Markdown work and generation-aware WebKit completions.
+- Fixed stale thumbnail keys, UTF-8 truncation boundaries, cancellation-triggered error loads and synchronous preview I/O, exported per-file counts and folder-ranking empty-state labels.
+- Browser, export, security and arithmetic regressions; CI builds both extensions and runs all test suites.
+- Optional Developer ID/hardened-runtime signing and guarded notarization packaging. Default development builds remain unnotarized.
+
 ## 1.1.0 — initial public preview
 
 - Recursive logical/allocated size analysis with incremental progress, Stop and Rescan.

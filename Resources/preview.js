@@ -6,10 +6,10 @@
   const previewTab = document.getElementById('preview-tab');
   const sourceTab = document.getElementById('source-tab');
   // Document HTML is untrusted. Only the bundled renderer scripts may execute.
-  article.innerHTML = DOMPurify.sanitize(marked.parse(markdown, { gfm: true }), {
+  article.innerHTML = DOMPurify.sanitize(article.innerHTML, {
     USE_PROFILES: { html: true },
     FORBID_TAGS: ['style', 'form', 'button', 'textarea', 'select', 'video', 'audio'],
-    FORBID_ATTR: ['style', 'id', 'name', 'srcset', 'autofocus'],
+    FORBID_ATTR: ['style', 'name', 'srcset', 'autofocus'],
     ALLOW_DATA_ATTR: false
   });
   source.querySelector('code').textContent = markdown;
@@ -29,13 +29,6 @@
       img.replaceWith(placeholder);
     }
   });
-  const ids = new Set();
-  article.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(heading => {
-    const root = heading.textContent.toLowerCase().trim().replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-') || 'section';
-    let id = root, suffix = 1;
-    while (ids.has(id)) id = root + '-' + suffix++;
-    ids.add(id); heading.id = id;
-  });
   article.querySelectorAll('a[href^="#"]').forEach(link => link.addEventListener('click', event => {
     event.preventDefault();
     let id; try { id = decodeURIComponent(link.getAttribute('href').slice(1)); } catch { return; }
@@ -54,6 +47,11 @@
   }
   previewTab.addEventListener('click', () => selectTab(0));
   sourceTab.addEventListener('click', () => selectTab(1));
+  document.querySelector('.tabs').addEventListener('keydown', event => {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault(); selectTab(currentTab === 0 ? 1 : 0); (currentTab === 0 ? previewTab : sourceTab).focus();
+    }
+  });
   let fontSize = 16;
   document.getElementById('smaller').addEventListener('click', () => { fontSize = Math.max(12, fontSize - 1); document.documentElement.style.setProperty('--font-size', fontSize + 'px'); });
   document.getElementById('larger').addEventListener('click', () => { fontSize = Math.min(24, fontSize + 1); document.documentElement.style.setProperty('--font-size', fontSize + 'px'); });

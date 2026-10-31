@@ -7,118 +7,10 @@ import ImageIO
 
 func isMarkdown(_ url: URL) -> Bool { ["md", "markdown", "mdown", "mkd", "mkdn"].contains(url.pathExtension.lowercased()) }
 
-struct FolderEntry: Identifiable, Sendable {
-    var id: URL { url }
-    let url: URL
-    let name: String
-    let isFolder: Bool
-    let isLink: Bool
-    let size: Int64
-    let modified: Date?
-    let kind: String
-    static func read(_ folder: URL, showHidden: Bool) throws -> ([FolderEntry], Bool) {
-        let keys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey, .isPackageKey, .fileSizeKey, .contentModificationDateKey, .localizedTypeDescriptionKey]
-        var enumerationError: Error?
-        var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants]
-        if !showHidden { options.insert(.skipsHiddenFiles) }
-        guard let enumerator = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: Array(keys), options: options, errorHandler: { _, error in
-            enumerationError = error
-            return false
-        }) else { throw CocoaError(.fileReadNoPermission) }
-        var entries: [FolderEntry] = []
-        var truncated = false
-        while let url = enumerator.nextObject() as? URL {
-            try Task<Never, Never>.checkCancellation()
-            if entries.count == 20_000 { truncated = true; break }
-            let v = try? url.resourceValues(forKeys: keys)
-            entries.append(FolderEntry(url: url, name: url.lastPathComponent, isFolder: v?.isDirectory == true && v?.isPackage != true && v?.isSymbolicLink != true, isLink: v?.isSymbolicLink == true, size: Int64(v?.fileSize ?? 0), modified: v?.contentModificationDate, kind: v?.localizedTypeDescription ?? "File"))
-        }
-        if let enumerationError { throw enumerationError }
-        return (entries, truncated)
-    }
-}
-
-@MainActor final class FolderModel: ObservableObject {
-    @Published var root: URL
-    @Published var current: URL
-    @Published var entries: [FolderEntry] = []
-    @Published var selected: FolderEntry?
-    @Published var query = ""
-    @Published var loading = false
-    @Published var error: String?
-    @Published var truncated = false
-    @Published var showHidden = false
-    @Published var listMode = UserDefaults.standard.bool(forKey: "listMode")
-    @Published var sort = "Name"
-    let analysis = FolderAnalysisModel()
-    private var listingTask: Task<Void, Never>?
-    private var listingWorker: Task<([FolderEntry], Bool), Error>?
-    private var generation = 0
-    init(root: URL) { self.root = root; self.current = root }
-    var visible: [FolderEntry] {
-        entries.filter { query.isEmpty || $0.name.localizedStandardContains(query) }.sorted { a, b in
-            if a.isFolder != b.isFolder { return a.isFolder }
-            switch sort {
-            case "Size": if a.size != b.size { return a.size > b.size }
-            case "Modified": if a.modified != b.modified { return (a.modified ?? .distantPast) > (b.modified ?? .distantPast) }
-            default: break
-            }
-            return a.name.localizedStandardCompare(b.name) == .orderedAscending
-        }
-    }
-    var crumbs: [URL] {
-        var result = [current]; var p = current
-        while p != root && p.pathComponents.count > root.pathComponents.count {
-            p.deleteLastPathComponent(); result.insert(p, at: 0)
-        }
-        return result
-    }
-    func load(_ url: URL? = nil) {
-        if let url { current = url; selected = nil; query = "" }
-        generation += 1; let token = generation
-        loading = true; error = nil
-        let folder = current; let hidden = showHidden
-        listingTask?.cancel()
-        listingWorker?.cancel()
-        analysis.start(root: folder, includeHidden: hidden)
-        let worker = Task.detached(priority: .userInitiated) { try FolderEntry.read(folder, showHidden: hidden) }
-        listingWorker = worker
-        listingTask = Task { [weak self] in
-            do {
-                let result = try await worker.value
-                guard let self, self.generation == token, !Task.isCancelled else { return }
-                self.entries = result.0
-                self.truncated = result.1
-                self.loading = false
-            } catch {
-                guard let self, self.generation == token, !Task.isCancelled else { return }
-                self.entries = []
-                self.error = error.localizedDescription
-                self.loading = false
-            }
-        }
-    }
-    func dispose() {
-        generation += 1
-        listingTask?.cancel()
-        listingWorker?.cancel()
-        analysis.cancel()
-    }
-    func previewAnalyzedFile(_ url: URL) {
-        guard url.path.hasPrefix(current.path == "/" ? "/" : current.path + "/"),
-              let values = try? url.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey, .localizedTypeDescriptionKey]),
-              values.isRegularFile == true, values.isSymbolicLink != true else { return }
-        selected = FolderEntry(url: url, name: url.lastPathComponent, isFolder: false, isLink: false, size: Int64(values.fileSize ?? 0), modified: nil, kind: values.localizedTypeDescription ?? "File")
-    }
-    deinit { listingTask?.cancel(); listingWorker?.cancel() }
-    func enter(_ entry: FolderEntry) { if entry.isFolder { load(entry.url) } else { selected = entry } }
-    func back() { if selected != nil { selected = nil } else if current != root { load(current.deletingLastPathComponent()) } }
-}
-
 @MainActor final class ThumbnailStore {
     static let shared = ThumbnailStore()
-    let cache = NSCache<NSURL, NSImage>()
-    init() { cache.countLimit = 300 }
+    let cache = NSCache<NSString, NSImage>()
+    init() { cache.countLimit = 300; cache.totalCostLimit = 32 * 1024 * 1024 }
 }
 
 struct FileThumbnail: View {
@@ -128,25 +20,26 @@ struct FileThumbnail: View {
     var body: some View {
         Image(nsImage: thumbnail ?? NSWorkspace.shared.icon(forFile: entry.url.path))
             .resizable().scaledToFit().frame(width: side, height: side)
-            .task(id: entry.url) {
+            .task(id: "\(entry.url.path)|\(entry.size)|\(entry.modified?.timeIntervalSince1970 ?? 0)") {
                 thumbnail = nil
+                let cacheKey = "\(entry.url.path)|\(entry.size)|\(entry.modified?.timeIntervalSince1970 ?? 0)" as NSString
                 guard !entry.isFolder && !entry.isLink else { return }
-                if let cached = ThumbnailStore.shared.cache.object(forKey: entry.url as NSURL) { thumbnail = cached; return }
-                let values = try? entry.url.resourceValues(forKeys: [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey])
-                if values?.isUbiquitousItem == true && values?.ubiquitousItemDownloadingStatus != .current { return }
+                if let cached = ThumbnailStore.shared.cache.object(forKey: cacheKey) { thumbnail = cached; return }
+                guard (try? LocalFilePolicy.requireLocal(entry.url)) != nil else { return }
                 if let type = try? entry.url.resourceValues(forKeys: [.contentTypeKey]).contentType, type.conforms(to: .image), entry.size < 50_000_000,
                    let cgImage = await Task.detached(priority: .utility, operation: { imageThumbnail(entry.url, pixels: 320) }).value {
+                    guard !Task.isCancelled else { return }
                     let image = NSImage(cgImage: cgImage, size: .zero)
-                    ThumbnailStore.shared.cache.setObject(image, forKey: entry.url as NSURL)
+                    ThumbnailStore.shared.cache.setObject(image, forKey: cacheKey, cost: Int(image.size.width * image.size.height * 4))
                     thumbnail = image
                     return
                 }
                 let request = QLThumbnailGenerator.Request(fileAt: entry.url, size: NSSize(width: 160, height: 160), scale: 2, representationTypes: .all)
                 do {
-                    let representation = try await QLThumbnailGenerator.shared.generateBestRepresentation(for: request)
+                    let representation = try await withTaskCancellationHandler(operation: { try await QLThumbnailGenerator.shared.generateBestRepresentation(for: request) }, onCancel: { QLThumbnailGenerator.shared.cancel(request) })
                     guard !Task.isCancelled else { return }
                     let image = representation.nsImage
-                    ThumbnailStore.shared.cache.setObject(image, forKey: entry.url as NSURL)
+                    ThumbnailStore.shared.cache.setObject(image, forKey: cacheKey, cost: Int(image.size.width * image.size.height * 4))
                     thumbnail = image
                 } catch { /* The file's system icon remains visible. */ }
             }
@@ -157,10 +50,11 @@ func fileSize(_ bytes: Int64) -> String { ByteCountFormatter.string(fromByteCoun
 
 struct FolderBrowser: View {
     @ObservedObject var model: FolderModel
+    @FocusState private var searchFocused: Bool
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                Button { model.back() } label: { Image(systemName: "chevron.left") }.disabled(model.current == model.root && model.selected == nil).help("Back")
+                Button { model.back() } label: { Image(systemName: "chevron.left") }.disabled(model.current == model.root && model.selected == nil).help("Back (⌘[)").keyboardShortcut("[", modifiers: .command)
                 Image(systemName: "folder.fill").font(.title2).foregroundStyle(.blue)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.current.lastPathComponent).font(.headline).lineLimit(1)
@@ -168,12 +62,12 @@ struct FolderBrowser: View {
                 }
                 Spacer()
                 if model.selected == nil {
-                    Picker("Sort", selection: $model.sort) { Text("Name").tag("Name"); Text("Size").tag("Size"); Text("Modified").tag("Modified") }.labelsHidden().frame(width: 110).help("Sort folders first, then by selected field")
-                    Picker("View", selection: $model.listMode) {
-                        Image(systemName: "square.grid.2x2").tag(false)
-                        Image(systemName: "list.bullet").tag(true)
-                    }.pickerStyle(.segmented).labelsHidden().frame(width: 76).help("Grid or list view")
-                    .onChange(of: model.listMode) { _, v in UserDefaults.standard.set(v, forKey: "listMode") }
+                    Picker("Sort", selection: $model.sort) { ForEach(["Name", "Size", "Modified", "Type"], id: \.self) { Text($0).tag($0) } }.labelsHidden().frame(width: 110).help("Sort folders first, then by selected field")
+                    Picker("View", selection: $model.mode) {
+                        Image(systemName: "square.grid.2x2").accessibilityLabel("Grid").tag("Grid")
+                        Image(systemName: "list.bullet").tag("List")
+                        Image(systemName: "list.bullet.indent").accessibilityLabel("Tree").tag("Tree")
+                    }.pickerStyle(.segmented).labelsHidden().frame(width: 110).help("Grid, list or expandable tree")
                 }
             }.padding(16)
             Divider()
@@ -182,7 +76,7 @@ struct FolderBrowser: View {
             } else {
                 HStack {
                     Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-                    TextField("Filter this folder", text: $model.query).textFieldStyle(.plain)
+                    TextField("Filter this folder", text: $model.query).textFieldStyle(.plain).focused($searchFocused)
                     if !model.query.isEmpty { Button { model.query = "" } label: { Image(systemName: "xmark.circle.fill") }.buttonStyle(.plain) }
                 }.padding(9).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8)).padding(.horizontal,16).padding(.vertical,10)
                 FolderAnalysisView(analysis: model.analysis, previewFile: model.previewAnalyzedFile)
@@ -190,10 +84,10 @@ struct FolderBrowser: View {
                 else if let error = model.error {
                     ContentUnavailableView { Label("Unable to read folder", systemImage: "folder.badge.questionmark") } description: { Text(error) } actions: { Button("Try Again") { model.load() } }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if model.visible.isEmpty {
+                } else if model.mode == "Tree" ? model.treeRows.isEmpty : model.visible.isEmpty {
                     ContentUnavailableView(model.query.isEmpty ? "This folder is empty" : "No matching files", systemImage: model.query.isEmpty ? "folder" : "magnifyingglass", description: Text(model.query.isEmpty ? "Files and subfolders will appear here." : "Try another name."))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if model.listMode { list } else { grid }
+                } else if model.mode == "Tree" { tree } else if model.mode == "List" { list } else { grid }
             }
             Divider()
             HStack(spacing: 4) {
@@ -206,10 +100,10 @@ struct FolderBrowser: View {
                     }
                 }
                 Spacer(minLength: 12)
-                Text(model.query.isEmpty ? "\(model.entries.count) \(model.entries.count == 1 ? "item" : "items")" : "\(model.visible.count) of \(model.entries.count) items").foregroundStyle(.secondary).fixedSize()
+                Text(model.mode == "Tree" ? "\(model.treeRows.count) \(model.treeRows.count == 1 ? "tree row" : "tree rows")" : model.query.isEmpty ? "\(model.entries.count) \(model.entries.count == 1 ? "item" : "items")" : "\(model.visible.count) of \(model.entries.count) items").foregroundStyle(.secondary).fixedSize()
                 Menu {
-                    Toggle("Show hidden files", isOn: $model.showHidden)
-                    Button("Refresh") { model.load() }
+                    Toggle("Show hidden files", isOn: $model.showHidden).keyboardShortcut(".", modifiers: [.command, .shift])
+                    Button("Refresh") { model.load() }.keyboardShortcut("r", modifiers: .command)
                 } label: { Image(systemName: "ellipsis.circle").font(.system(size: 15)) }
                     .menuStyle(.borderlessButton)
                     .menuIndicator(.hidden)
@@ -223,11 +117,13 @@ struct FolderBrowser: View {
         }
         .frame(minWidth: 600, maxWidth: .infinity, minHeight: 400, maxHeight: .infinity, alignment: .top)
         .background(Color(nsColor: .windowBackgroundColor))
+        .background(Button("Find") { searchFocused = true }.keyboardShortcut("f", modifiers: .command).hidden())
         .task { model.load() }
         .onChange(of: model.showHidden) { model.load() }
         .onDisappear { model.dispose() }
     }
     var grid: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 124), spacing: 12)], spacing: 16) {
                 ForEach(model.visible) { entry in
@@ -236,15 +132,18 @@ struct FolderBrowser: View {
                             FileThumbnail(entry: entry, side: 64).frame(height: 72)
                             Text(entry.name).font(.system(size: 12)).lineLimit(2).multilineTextAlignment(.center).frame(height: 32, alignment: .top)
                             Text(entry.isFolder ? "Folder" : fileSize(entry.size)).font(.caption2).foregroundStyle(.secondary)
-                        }.frame(maxWidth: .infinity).padding(10).contentShape(RoundedRectangle(cornerRadius: 9))
-                    }.buttonStyle(FolderCellStyle()).help(entry.isFolder ? "Browse \(entry.name)" : "Preview \(entry.name)")
+                        }.frame(maxWidth: .infinity).padding(10).background(model.focused == entry.url ? Color.accentColor.opacity(0.16) : Color.clear).contentShape(RoundedRectangle(cornerRadius: 9))
+                    }.contextMenu { EntryActions(url: entry.url) }.buttonStyle(FolderCellStyle()).help(entry.isFolder ? "Browse \(entry.name)" : "Preview \(entry.name)")
                 }
             }.padding(16)
+        }.focusable().onMoveCommand { model.moveFocus($0) }.onKeyPress(.return) { model.openFocused(); return .handled }
+        .onChange(of: model.focused) { _, url in if let url { proxy.scrollTo(url, anchor: .center) } }
         }
     }
     var list: some View {
+        ScrollViewReader { proxy in
         VStack(spacing: 0) {
-            HStack { Text("Name").frame(maxWidth: .infinity, alignment: .leading); Text("Modified").frame(width: 140, alignment: .leading); Text("Size").frame(width: 85, alignment: .trailing) }.font(.caption).foregroundStyle(.secondary).padding(.horizontal,20).padding(.bottom,6)
+            HStack { Text("Name").frame(maxWidth: .infinity, alignment: .leading); Text("Type").frame(width: 100, alignment: .leading); Text("Modified").frame(width: 140, alignment: .leading); Text("Size").frame(width: 85, alignment: .trailing) }.font(.caption).foregroundStyle(.secondary).padding(.horizontal,20).padding(.bottom,6)
             ScrollView {
                 LazyVStack(spacing: 1) {
                     ForEach(Array(model.visible.enumerated()), id: \.element.id) { index, entry in
@@ -252,14 +151,41 @@ struct FolderBrowser: View {
                             HStack(spacing: 10) {
                                 FileThumbnail(entry: entry, side: 24)
                                 Text(entry.name).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
+                                Text(entry.kind).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 100, alignment: .leading)
                                 Text(entry.modified?.formatted(date: .abbreviated, time: .shortened) ?? "—").font(.caption).foregroundStyle(.secondary).frame(width: 140, alignment: .leading)
                                 Text(entry.isFolder ? "—" : fileSize(entry.size)).font(.caption).foregroundStyle(.secondary).frame(width: 85, alignment: .trailing)
                                 Image(systemName: entry.isFolder ? "chevron.right" : "eye").font(.caption2).foregroundStyle(.tertiary).frame(width: 12)
-                            }.padding(.horizontal,12).padding(.vertical,6).background(index.isMultiple(of: 2) ? Color.primary.opacity(0.035) : Color.clear, in: RoundedRectangle(cornerRadius: 6)).contentShape(Rectangle())
-                        }.buttonStyle(FolderCellStyle())
+                            }.padding(.horizontal,12).padding(.vertical,6).background(model.focused == entry.url ? Color.accentColor.opacity(0.16) : Color.clear).background(index.isMultiple(of: 2) ? Color.primary.opacity(0.035) : Color.clear, in: RoundedRectangle(cornerRadius: 6)).contentShape(Rectangle())
+                        }.contextMenu { EntryActions(url: entry.url) }.buttonStyle(FolderCellStyle())
                     }
                 }.padding(.horizontal,8)
             }
+        }.focusable().onMoveCommand { model.moveFocus($0) }.onKeyPress(.return) { model.openFocused(); return .handled }
+        .onChange(of: model.focused) { _, url in if let url { proxy.scrollTo(url, anchor: .center) } }
+        }
+    }
+    var tree: some View {
+        ScrollViewReader { proxy in
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 2) {
+                ForEach(model.treeRows) { row in
+                    HStack(spacing: 8) {
+                        if row.entry.isFolder {
+                            Button { model.toggle(row.entry) } label: { Image(systemName: model.expanded.contains(row.id) ? "chevron.down" : "chevron.right").frame(width: 16) }
+                                .buttonStyle(.plain).accessibilityLabel("Expand or collapse " + row.entry.name)
+                        } else { Color.clear.frame(width: 16, height: 1) }
+                        Button { model.enter(row.entry) } label: {
+                            HStack { FileThumbnail(entry: row.entry, side: 22); Text(row.entry.name).lineLimit(1); Spacer(); Text(row.entry.kind).foregroundStyle(.secondary).lineLimit(1).frame(width: 110); Text(row.entry.isFolder ? "—" : fileSize(row.entry.size)).monospacedDigit().frame(width: 85, alignment: .trailing) }
+                                .contentShape(Rectangle())
+                        }.buttonStyle(.plain).contextMenu { EntryActions(url: row.id) }
+                    }.padding(.leading, CGFloat(row.depth * 18)).padding(7)
+                     .background(model.focused == row.id ? Color.accentColor.opacity(0.16) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                    if let message = model.treeMessages[row.id] { Text(message).font(.caption).foregroundStyle(.secondary).padding(.leading, CGFloat(row.depth * 18 + 25)) }
+                }
+                Text("Tree expands on demand · filters loaded names · up to 2,000 children per folder / 10,000 cached entries").font(.caption2).foregroundStyle(.secondary).padding(8)
+            }.padding(8)
+        }.focusable().onMoveCommand { model.moveFocus($0) }.onKeyPress(.return) { model.openFocused(); return .handled }
+        .onChange(of: model.focused) { _, url in if let url { proxy.scrollTo(url, anchor: .center) } }
         }
     }
 }
@@ -296,19 +222,19 @@ struct FileDetail: View {
         }.task(id: entry.url) {
             markdown = false; text = nil; image = nil; pdf = nil; ready = false
             defer { ready = true }
-            guard !entry.isLink else { return }
-            let values = try? entry.url.resourceValues(forKeys: [.contentTypeKey,.isUbiquitousItemKey,.ubiquitousItemDownloadingStatusKey])
-            if values?.isUbiquitousItem == true && values?.ubiquitousItemDownloadingStatus != .current { return }
-            if isMarkdown(entry.url) { markdown = true }
-            else if values?.contentType?.conforms(to: .image) == true, entry.size < 50_000_000 {
-                if let cg = await Task.detached(priority: .userInitiated, operation: { imageThumbnail(entry.url, pixels: 1800) }).value { image = NSImage(cgImage: cg, size: .zero) }
-            } else if values?.contentType?.conforms(to: .pdf) == true, entry.size < 50_000_000 { pdf = PDFDocument(url: entry.url) }
-            else if entry.size < 10_000_000, values?.contentType?.conforms(to: .text) == true || ["md","json","yaml","yml","swift","py","js","ts","csv","log","sh"].contains(entry.url.pathExtension.lowercased()) {
-                if let handle = try? FileHandle(forReadingFrom: entry.url) {
-                    let data = try? handle.read(upToCount: 128_000); try? handle.close()
-                    if let data, let decoded = String(data: data,encoding: .utf8) { text = decoded + (entry.size > 128_000 ? "\n\n… Preview limited to the first 128 KB." : "") }
+            let url = entry.url
+            let worker = Task.detached(priority: .userInitiated) { try PreviewPayload.load(url) }
+            do {
+                let payload = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
+                guard !Task.isCancelled else { return }
+                switch payload {
+                case .markdown: markdown = true
+                case .image(let cg): image = NSImage(cgImage: cg, size: .zero)
+                case .pdf(let document): pdf = document
+                case .text(let value): text = value
+                case .unsupported: break
                 }
-            }
+            } catch { if !Task.isCancelled { text = error.localizedDescription } }
         }
     }
 }

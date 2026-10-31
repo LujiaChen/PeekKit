@@ -6,6 +6,7 @@ struct FolderAnalysisView: View {
     let previewFile: (URL) -> Void
     @State private var expanded = false
     @State private var tab = "File types"
+    @State private var copied = false
     @State private var metric: AnalysisMetric = .allocated
 
     var body: some View {
@@ -18,6 +19,10 @@ struct FolderAnalysisView: View {
                     Text("Recursive: \(fileSize(snapshot.logicalBytes)) size · \(fileSize(snapshot.allocatedBytes)) on disk")
                         .lineLimit(1).minimumScaleFactor(0.8).monospacedDigit()
                     Spacer(minLength: 4)
+                    Menu {
+                        Button("Copy JSON") { copy(snapshot, csv: false) }
+                        Button("Copy CSV") { copy(snapshot, csv: true) }
+                    } label: { Image(systemName: copied ? "checkmark" : "doc.on.doc") }.accessibilityLabel("Copy summary").fixedSize().help("Copies paths and measured results to the clipboard")
                     if snapshot.state == .scanning {
                         ProgressView().controlSize(.small)
                         Text("\(snapshot.visitedEntries.formatted()) checked").foregroundStyle(.secondary).monospacedDigit()
@@ -33,6 +38,7 @@ struct FolderAnalysisView: View {
                             Picker("Analysis section", selection: $tab) {
                                 Text("File types").tag("File types")
                                 Text("Largest files").tag("Largest files")
+                                Text("Folders").tag("Folders")
                                 Text("Scope & omissions").tag("Scope")
                             }.pickerStyle(.segmented).labelsHidden()
                             if tab != "Scope" {
@@ -43,7 +49,7 @@ struct FolderAnalysisView: View {
                         }
                         ScrollView {
                             if tab == "File types" { types(snapshot) }
-                            else if tab == "Largest files" { largest(snapshot) }
+                            else if tab == "Largest files" || tab == "Folders" { largest(snapshot) }
                             else { scope(snapshot) }
                         }.frame(height: 166)
                         Text("Current folder + descendants · \(snapshot.includeHidden ? "hidden included" : "hidden excluded") · packages included · name filter does not affect analysis")
@@ -54,21 +60,33 @@ struct FolderAnalysisView: View {
             }.background(Color.primary.opacity(0.025))
         }
     }
+    private func copy(_ snapshot: FolderAnalysisSnapshot, csv: Bool) {
+        let value = csv ? snapshot.csvSummary() : (try? snapshot.jsonSummary())
+        guard let value else { return }
+        NSPasteboard.general.clearContents(); NSPasteboard.general.setString(value, forType: .string); copied = true
+    }
     private func status(_ s: FolderAnalysisSnapshot) -> String {
         switch s.state {
         case .scanning: return "Scanning"
         case .stopped: return "Stopped · partial"
         case .limited: return "Limit reached · partial"
-        case .complete: return s.isPartial ? "Partial · \(s.fileCount.formatted()) files" : "\(s.fileCount.formatted()) files"
+        case .complete: return s.isPartial ? "Partial · \(s.fileCount.formatted()) \(s.fileCount == 1 ? "file" : "files")" : "\(s.fileCount.formatted()) \(s.fileCount == 1 ? "file" : "files")"
         }
     }
     private func types(_ s: FolderAnalysisSnapshot) -> some View {
         LazyVStack(spacing: 8) {
             if s.types.isEmpty { Text(s.state == .scanning ? "Reading file metadata…" : "No local readable files in this scope.").foregroundStyle(.secondary).padding(18) }
-            ForEach(s.sortedTypes(metric)) { type in
+            let total = metric == .logical ? s.logicalBytes : s.allocatedBytes
+            let types = s.sortedTypes(metric)
+            HStack(spacing: 1) {
+                ForEach(Array(types.prefix(8).enumerated()), id: \.element.id) { index, type in
+                    Rectangle().fill([Color.blue, .teal, .purple, .orange, .pink, .indigo, .green, .gray][index]).frame(width: max(1, 360 * Double(type.bytes(metric)) / Double(max(1, total))))
+                }
+            }.frame(maxWidth: .infinity, alignment: .leading).frame(height: 8).clipShape(Capsule()).accessibilityLabel("Largest eight type buckets by storage; rows show all types")
+            ForEach(types) { type in
                 HStack(spacing: 12) {
                     Text(type.name).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
-                    Text("\(type.count.formatted()) files").foregroundStyle(.secondary).monospacedDigit().frame(width: 88, alignment: .trailing)
+                    Text("\(type.count.formatted()) \(type.count == 1 ? "file" : "files")").foregroundStyle(.secondary).monospacedDigit().frame(width: 88, alignment: .trailing)
                     ProgressView(value: Double(type.bytes(metric)), total: Double(max(1, metric == .logical ? s.logicalBytes : s.allocatedBytes))).frame(width: 60)
                     Text(fileSize(type.bytes(metric))).monospacedDigit().frame(width: 95, alignment: .trailing)
                 }.font(.caption)
@@ -77,16 +95,17 @@ struct FolderAnalysisView: View {
     }
     private func largest(_ s: FolderAnalysisSnapshot) -> some View {
         LazyVStack(spacing: 7) {
-            if s.largest(metric).isEmpty { Text("No local readable files in this scope.").foregroundStyle(.secondary).padding(18) }
-            ForEach(s.largest(metric)) { file in
-                Button { previewFile(file.url) } label: {
+            if (tab == "Folders" ? s.largestFolders(metric) : s.largest(metric)).isEmpty { Text(tab == "Folders" ? "No measured subfolders in this scope." : "No local readable files in this scope.").foregroundStyle(.secondary).padding(18) }
+            if tab == "Folders" { Text("Nested folder totals overlap. Hard links belong to their first visited directory. Unfinished or omitted contents are marked partial.").font(.caption2).foregroundStyle(.secondary) }
+            ForEach(tab == "Folders" ? s.largestFolders(metric) : s.largest(metric)) { file in
+                Button { if file.isDirectory { NSWorkspace.shared.activateFileViewerSelecting([file.url]) } else { previewFile(file.url) } } label: {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(file.url.lastPathComponent).lineLimit(1)
-                            Text(file.relativePath).font(.caption2).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                            Text(file.relativePath + (file.partial ? " · partial" : "")).font(.caption2).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                         }.frame(maxWidth: .infinity, alignment: .leading)
                         Text(fileSize(file.bytes(metric))).monospacedDigit()
-                        Image(systemName: "eye").foregroundStyle(.secondary)
+                        Image(systemName: file.isDirectory ? "folder" : "eye").foregroundStyle(.secondary)
                     }.padding(.vertical, 3).contentShape(Rectangle())
                 }.buttonStyle(.plain).font(.caption).help(file.relativePath)
                 .contextMenu {

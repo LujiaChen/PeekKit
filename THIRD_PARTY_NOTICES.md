@@ -11,3 +11,5 @@ PeekKit's original source is licensed under the [MIT License](LICENSE). Bundled 
 The folder analyzer is independently implemented. No PeekX implementation code was copied. Its README and source were reviewed as a functional reference. PeekKit uses its own bounded recursive metadata traversal and existing offline Markdown renderer.
 
 The Apple frameworks and SF Symbols used by the application are supplied by macOS and Apple's SDKs; they are not redistributed as source dependencies. Documentation screenshots show PeekKit running with synthetic sample files.
+
+Version 1.2 adds independently implemented lexical highlighting and heading navigation; no new vendored library is introduced. Existing license texts remain unchanged.
