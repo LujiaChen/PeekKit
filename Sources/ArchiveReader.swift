@@ -98,7 +98,7 @@ enum ArchiveReader {
                     for depth in 1..<parts.count {
                         let parent = parts.prefix(depth).joined(separator:"/")
                         if let previous = items[parent], !previous.directory { throw failure("Conflicting archive paths") }
-                        items[parent] = ArchiveItem(path:parent,directory:true,size:0,modified:nil)
+                        if items[parent] == nil { items[parent] = ArchiveItem(path:parent,directory:true,size:0,modified:nil) }
                     }
                     if let previous = items[path], previous.directory && mode != S_IFDIR { throw failure("Conflicting archive paths") }
                     items[path] = ArchiveItem(path:path,directory:mode == S_IFDIR,size:size,modified:archive_entry_mtime_is_set(entry) != 0 ? Date(timeIntervalSince1970:Double(archive_entry_mtime(entry))) : nil)
