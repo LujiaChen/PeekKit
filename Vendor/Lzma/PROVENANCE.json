@@ -1,0 +1,22 @@
+{
+  "source": "https://raw.githubusercontent.com/tukaani-project/xz/v5.4.7/src/liblzma/api/",
+  "tag": "v5.4.7",
+  "license": "Public domain API headers; upstream notices preserved. No decoder binary or implementation bundled.",
+  "sha256": {
+    "lzma.h": "a2e39ef317eed0abc844d4ff0a66ef4db1c2b60d891405d004bc64dde7183ee7",
+    "lzma/index.h": "9fb5fd67a04b5b7d594fb756e9ef11727e7cbef37cd0488c519e0dc4325d898c",
+    "lzma/version.h": "ebce74af94642e9faf9ffc7a6e293952af0d7807900cd00738f1115d5ccb19b9",
+    "lzma/index_hash.h": "d8207d4a784ca6f6a10d95992a26eab0c8b6b6db38525bbec04a589bfd696a26",
+    "lzma/lzma12.h": "2f42d62066796a589bc186f77f02dbcf59c0d46f1887db903ab1bd28ccebd2f3",
+    "lzma/container.h": "0f64973767c995a875b6a645363d589de47c8f9089cfcd838d92f7cbf87342c5",
+    "lzma/delta.h": "9f99742c20595af65103e67b210ea6b9a348d8b6f13f007d36734b0d293e31dc",
+    "lzma/vli.h": "33e5f74d554820d9f11ffd554ccb50490c1ddd8252709306747b7c7aba8057a5",
+    "lzma/check.h": "e98b6df731ec386e421a40651991fcd3eac84ab63781f86cfbc7073fbc1ec998",
+    "lzma/bcj.h": "eb476931d15a174904d9696c377582e505cb98f3caed1905d17b5c05029549bd",
+    "lzma/stream_flags.h": "85152d87811789956d0602152f3c51fca628d0aa99ddacb44813fa04f8f9aa98",
+    "lzma/block.h": "9404bdeb7399a8311850f5e8be580e521b31f8dd5d4066f6d9ddb8641678c053",
+    "lzma/hardware.h": "c557f4c88fcbf45bb780a4e912ebabe30609624d7cf53c1b267b57657303df15",
+    "lzma/filter.h": "5d595ecdfd045c1daea1e6f1f636e25b955e02a8b9eb190d196b5ca4d1091cf5",
+    "lzma/base.h": "80a5ea6afdfe82ebb50ab30be6ae9ea08019a3ee6fd3c558f590828106f36aa9"
+  }
+}

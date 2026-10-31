@@ -125,7 +125,8 @@ struct ArchiveEntryPreview: View {
             else { ProgressView("Reading entry…") }
             if rendered != nil { Toggle("View Markdown source",isOn:$showSource).toggleStyle(.button) }
             Spacer(minLength:0)
-        }.task(id:entry.path) {
+        }.onDisappear { pdf = nil; image = nil; text = nil; rendered = nil; showSource = false }
+        .task(id:entry.path) {
             let ext = (entry.path as NSString).pathExtension.lowercased()
             let worker = Task.detached(priority:.userInitiated) { () -> (Data, CGImage?, PDFDocument?) in
                 let data = try ArchiveReader.preview(url,path:entry.path)
@@ -134,7 +135,10 @@ struct ArchiveEntryPreview: View {
                     let image = CGImageSourceCreateThumbnailAtIndex(source,0,[kCGImageSourceCreateThumbnailFromImageAlways:true,kCGImageSourceThumbnailMaxPixelSize:1800] as CFDictionary)
                     return (Data(),image,nil)
                 }
-                if ext == "pdf" { return (Data(),nil,PDFDocument(data:data)) }
+                if ext == "pdf" {
+                    guard let document = PDFDocument(data:data), !document.isLocked, document.pageCount > 0 else { throw ArchiveReader.failure("The archived PDF is damaged, password protected or has no readable pages.") }
+                    return (Data(),nil,document)
+                }
                 return (Data(data.prefix(128_000)),nil,nil)
             }
             do {

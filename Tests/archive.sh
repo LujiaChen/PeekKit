@@ -43,5 +43,7 @@ with tarfile.open(r/'conflict.tar','w') as a:
  a.addfile(tarfile.TarInfo('file'));a.addfile(tarfile.TarInfo('file/child'))
 (r/'secret.txt').write_text('secret');subprocess.run(['/usr/bin/zip','-q','-P','fixture-password',str(r/'encrypted.zip'),'secret.txt'],cwd=r,check=True)
 PY
-xcrun swiftc -O -swift-version 5 -I "$ROOT/Vendor/LibArchive" -module-cache-path "$TEMP/cache" -parse-as-library "$ROOT/Sources/ArchiveReader.swift" "$ROOT/Sources/FolderAnalysis.swift" "$ROOT/Sources/LocalFilePolicy.swift" "$ROOT/Tests/ArchiveTests.swift" -o "$TEMP/tests"
+python3 "$ROOT/Tests/make-sevenzip.py" "$TEMP"
+cp "$ROOT/Tests/fixtures/"*.7z "$TEMP/"
+xcrun swiftc -O -swift-version 5 -I "$ROOT/Vendor/LibArchive" -I "$ROOT/Vendor/Lzma" -module-cache-path "$TEMP/cache" -parse-as-library "$ROOT/Sources/ArchiveReader.swift" "$ROOT/Sources/SevenZipReader.swift" "$ROOT/Sources/FolderAnalysis.swift" "$ROOT/Sources/LocalFilePolicy.swift" "$ROOT/Tests/ArchiveTests.swift" -o "$TEMP/tests"
 "$TEMP/tests" "$TEMP" "$REPORT"

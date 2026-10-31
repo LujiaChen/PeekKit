@@ -3,7 +3,7 @@ import PDFKit
 import UniformTypeIdentifiers
 
 enum PreviewPayload {
-    case markdown, image(CGImage), pdf(PDFDocument), text(String), unsupported
+    case markdown, image(CGImage), pdf(FileBackedPDF), text(String), unsupported
     static func load(_ url: URL) throws -> PreviewPayload {
         try LocalFilePolicy.requireLocal(url)
         try Task<Never, Never>.checkCancellation()
@@ -11,9 +11,8 @@ enum PreviewPayload {
         let size = v.fileSize ?? 0
         if isMarkdown(url) { return .markdown }
         if v.contentType?.conforms(to: .image) == true, size < 50_000_000, let cg = imageThumbnail(url, pixels: 1800) { return .image(cg) }
-        if v.contentType?.conforms(to: .pdf) == true, size < 50_000_000 {
-            let data = try LocalFilePolicy.read(url, maximum: 50_000_001)
-            if data.count <= 50_000_000, let document = PDFDocument(data: data) { return .pdf(document) }
+        if v.contentType?.conforms(to: .pdf) == true || url.pathExtension.lowercased() == "pdf" {
+            return .pdf(try FileBackedPDF.load(url))
         }
         if v.contentType?.conforms(to: .text) == true || ["json","yaml","yml","swift","py","js","ts","csv","log","sh"].contains(url.pathExtension.lowercased()) {
             let data = try LocalFilePolicy.read(url, maximum: 128_001)

@@ -231,7 +231,7 @@ struct FileDetail: View {
     @State private var markdown = false
     @State private var text: String?
     @State private var image: NSImage?
-    @State private var pdf: PDFDocument?
+    @State private var pdf: FileBackedPDF?
     @State private var ready = false
     var body: some View {
         VStack(spacing: 12) {
@@ -251,11 +251,12 @@ struct FileDetail: View {
                 #endif
             }
             else if let image { GeometryReader { geo in Image(nsImage: image).resizable().scaledToFit().frame(width: geo.size.width,height: geo.size.height) }.padding(16) }
-            else if let pdf { PDFContent(document: pdf) }
+            else if let pdf { PDFContent(document: pdf.document, source: pdf) }
             else if let text { ScrollView([.vertical,.horizontal]) { Text(text).font(.system(size: 12, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity,alignment: .topLeading).padding(20) } }
             else if !ready { Spacer(); ProgressView(); Spacer() }
             else { Spacer(); FileThumbnail(entry: entry, side: 100); Text("\(entry.kind)").foregroundStyle(.secondary); Text("Use Finder to open this file in its app.").font(.caption).foregroundStyle(.secondary); Spacer() }
         }.sheet(isPresented: $showingInspector) { FileInspectorView(url: entry.url) }
+        .onDisappear { pdf = nil; image = nil; text = nil; markdown = false; ready = false }
         .task(id: entry.url) {
             markdown = false; text = nil; image = nil; pdf = nil; ready = false
             defer { ready = true }
@@ -271,16 +272,10 @@ struct FileDetail: View {
                 case .text(let value): text = value
                 case .unsupported: break
                 }
-            } catch { if !Task.isCancelled { text = error.localizedDescription } }
+            } catch { if !Task.isCancelled { text = "Unable to preview this file: " + error.localizedDescription } }
         }
     }
 }
-struct PDFContent: NSViewRepresentable {
-    let document: PDFDocument
-    func makeNSView(context: Context) -> PDFView { let v = PDFView(); v.autoScales = true; v.document = document; return v }
-    func updateNSView(_ view: PDFView, context: Context) { view.document = document }
-}
-
 func imageThumbnail(_ url: URL, pixels: Int) -> CGImage? {
     guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary) else { return nil }
     return CGImageSourceCreateThumbnailAtIndex(source, 0, [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceCreateThumbnailWithTransform: true, kCGImageSourceThumbnailMaxPixelSize: pixels] as CFDictionary)
