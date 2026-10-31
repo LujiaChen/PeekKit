@@ -195,6 +195,7 @@ struct FolderCellStyle: ButtonStyle {
 
 struct FileDetail: View {
     let entry: FolderEntry
+    @State private var showingInspector = false
     @State private var markdown = false
     @State private var text: String?
     @State private var image: NSImage?
@@ -206,6 +207,8 @@ struct FileDetail: View {
                 FileThumbnail(entry: entry, side: 32)
                 VStack(alignment: .leading) { Text(entry.name).font(.headline).textSelection(.enabled); Text("\(entry.kind) · \(fileSize(entry.size))").font(.caption).foregroundStyle(.secondary) }
                 Spacer()
+                Button { showingInspector = true } label: { Image(systemName: "info.circle") }
+                    .help("File information").accessibilityLabel("File information")
             }.padding(.horizontal,20).padding(.top,16)
             if markdown {
                 #if FOLDER_EXTENSION
@@ -219,7 +222,8 @@ struct FileDetail: View {
             else if let text { ScrollView([.vertical,.horizontal]) { Text(text).font(.system(size: 12, design: .monospaced)).textSelection(.enabled).frame(maxWidth: .infinity,alignment: .topLeading).padding(20) } }
             else if !ready { Spacer(); ProgressView(); Spacer() }
             else { Spacer(); FileThumbnail(entry: entry, side: 100); Text("\(entry.kind)").foregroundStyle(.secondary); Text("Use Finder to open this file in its app.").font(.caption).foregroundStyle(.secondary); Spacer() }
-        }.task(id: entry.url) {
+        }.sheet(isPresented: $showingInspector) { FileInspectorView(url: entry.url) }
+        .task(id: entry.url) {
             markdown = false; text = nil; image = nil; pdf = nil; ready = false
             defer { ready = true }
             let url = entry.url

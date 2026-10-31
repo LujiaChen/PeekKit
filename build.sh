@@ -18,7 +18,7 @@ for KIND in Folder Markdown; do
   EXTENSION="$DESTINATION/Contents/PlugIns/PeekKit${KIND}Preview.appex"
   mkdir -p "$EXTENSION/Contents/MacOS" "$EXTENSION/Contents/Resources"
   if [[ "$KIND" == Folder ]]; then
-    SOURCES=(FolderAnalysis FolderAnalysisModel FolderAnalysisView AnalysisExport LocalFilePolicy FolderEntry FolderModel PreviewPayload FolderBrowser MarkdownDocument PreviewViewController MarkdownContent PreviewController)
+    SOURCES=(FolderAnalysis FolderAnalysisModel FolderAnalysisView AnalysisExport LocalFilePolicy FolderEntry FolderModel PreviewPayload FileInspection FileInspectorView FolderBrowser MarkdownDocument PreviewViewController MarkdownContent PreviewController)
     DEFINES=(-D FOLDER_EXTENSION)
   else
     SOURCES=(FolderAnalysis LocalFilePolicy MarkdownDocument PreviewProvider)

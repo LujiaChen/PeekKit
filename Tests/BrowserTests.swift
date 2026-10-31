@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import ImageIO
+import Darwin
 
 @main struct BrowserTests {
     @MainActor static func main() async throws {
@@ -70,6 +71,12 @@ import ImageIO
         let pdfContext=CGContext(pdfURL as CFURL,mediaBox:&rect,nil)!
         pdfContext.beginPDFPage(nil);pdfContext.fill(rect);pdfContext.endPDFPage();pdfContext.closePDF()
         if case .pdf(let document)=try PreviewPayload.load(pdfURL) {check("pdfPreviewDecode",document.pageCount==1)}else{check("pdfPreviewDecode",false)}
+        let inspection = try PeekKitInspection.read(wide)
+        var statInfo = stat(); let statOK = lstat(wide.path, &statInfo) == 0
+        check("inspectorMetadata", statOK && inspection.name == "wide.txt" && inspection.fileExtension == "txt" && inspection.logicalBytes == 150_000 && inspection.allocatedBytes == Int64(statInfo.st_blocks) * 512 && inspection.permissions == String(format:"%04o", Int(statInfo.st_mode & 0o7777)))
+        let linkInspection = try PeekKitInspection.read(alias)
+        check("inspectorDoesNotFollowSymlink", linkInspection.isSymlink && linkInspection.type == nil)
+        do { _ = try PeekKitInspection.read(base.appendingPathComponent("missing")); check("inspectorMissingFile",false) } catch { check("inspectorMissingFile",true) }
         check("markdownDetection", isMarkdown(base.appendingPathComponent("x.MD")))
         model.load(base); model.dispose(); let before = model.entries.count
         try await Task.sleep(nanoseconds:100_000_000)

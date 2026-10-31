@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — file information (development)
+
+- Add an asynchronous metadata-only file information panel for existing file previews.
+- Archive browsing and configurable list columns are not implemented yet.
+
 ## 1.2.0 — browsing, analysis and offline rendering
 
 - Lazy, bounded tree view; typed list column, type sorting, contextual open/reveal/copy actions and keyboard navigation.

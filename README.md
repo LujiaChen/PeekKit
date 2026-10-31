@@ -8,6 +8,10 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
+## Development branch: file information
+
+The file preview includes a File Information button with metadata such as path, type identifier, logical size, allocated blocks, dates and permissions. Archive browsing is not yet available. This is development work and has not been released.
+
 ## New in 1.2.0
 
 - Expand a bounded folder tree; filter loaded names without rescanning disk. Lists include file type, size and modification date.
