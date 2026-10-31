@@ -7,9 +7,7 @@ enum MarkdownDocument {
     static func read(_ url: URL) throws -> String {
         let access = url.startAccessingSecurityScopedResource()
         defer { if access { url.stopAccessingSecurityScopedResource() } }
-        let handle = try FileHandle(forReadingFrom: url)
-        defer { try? handle.close() }
-        let data = try handle.read(upToCount: maximumBytes + 1) ?? Data()
+        let data = try LocalFilePolicy.read(url, maximum: maximumBytes + 1)
         guard data.count <= maximumBytes else {
             throw NSError(domain: "PeekKit", code: 1, userInfo: [NSLocalizedDescriptionKey: "This file is larger than 8 MB. Open it in your editor to read it."])
         }
@@ -34,20 +32,28 @@ enum MarkdownDocument {
             .replacingOccurrences(of: "__LIBRARIES__", with: resource("marked", "js") + "\n" + resource("purify", "js"))
             .replacingOccurrences(of: "__PAYLOAD__", with: payload)
             .replacingOccurrences(of: "__RENDERER__", with: resource("preview", "js"))
+            .replacingOccurrences(of: "__BODY__", with: renderBody(source: source, bundle: bundle))
     }
 
-    static func quickLookHTML(source: String, bundle: Bundle) throws -> String {
+    static func renderBody(source: String, bundle: Bundle) throws -> String {
+        try Task<Never, Never>.checkCancellation()
         guard let library = bundle.url(forResource: "marked", withExtension: "js"),
-              let stylesheet = bundle.url(forResource: "preview", withExtension: "css"),
+              let highlighter = bundle.url(forResource: "code-highlight", withExtension: "js"),
               let renderer = bundle.url(forResource: "static-renderer", withExtension: "js"),
               let context = JSContext() else { throw NSError(domain: "PeekKit", code: 6) }
         var scriptError: String?
         context.exceptionHandler = { _, exception in scriptError = exception?.toString() }
         context.evaluateScript(try String(contentsOf: library, encoding: .utf8))
+        context.evaluateScript(try String(contentsOf: highlighter, encoding: .utf8))
         context.evaluateScript(try String(contentsOf: renderer, encoding: .utf8))
         guard let body = context.objectForKeyedSubscript("renderMarkdownSafely")?.call(withArguments: [source])?.toString(), scriptError == nil else {
             throw NSError(domain: "PeekKit", code: 7, userInfo: [NSLocalizedDescriptionKey: scriptError ?? "Could not render Markdown"])
         }
+        return body
+    }
+    static func quickLookHTML(source: String, bundle: Bundle) throws -> String {
+        let body = try renderBody(source: source, bundle: bundle)
+        guard let stylesheet = bundle.url(forResource: "preview", withExtension: "css") else { throw CocoaError(.fileNoSuchFile) }
         let css = try String(contentsOf: stylesheet, encoding: .utf8)
         let escaped = source.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;").replacingOccurrences(of: ">", with: "&gt;")
         return """

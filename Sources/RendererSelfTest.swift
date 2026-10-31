@@ -15,6 +15,8 @@ final class RendererSelfTest {
 
         **Bold** and *italic* with ~~deleted~~ and [a link](https://example.com).
 
+        ## Details
+
         | Name | Status |
         | --- | --- |
         | Preview | Ready |
@@ -41,7 +43,7 @@ final class RendererSelfTest {
             let native = try nativeMarkdown(fixture)
             results["nativeMarkdown"] = native.string.contains("Hello Markdown 你好") && native.string.contains("Preview") && native.string.contains("Bold")
             let staticHTML = try MarkdownDocument.quickLookHTML(source: fixture, bundle: .main)
-            results["quickLookFormatting"] = staticHTML.contains("<h1>Hello Markdown 你好</h1>") && staticHTML.contains("<table>") && staticHTML.contains("<strong>Bold</strong>")
+            results["quickLookFormatting"] = staticHTML.contains("<h1 id=\"pk-hello-markdown-你好\">Hello Markdown 你好</h1>") && staticHTML.contains("<table>") && staticHTML.contains("<strong>Bold</strong>")
             results["quickLookNoScripts"] = !staticHTML.contains("<script") && !staticHTML.contains("<iframe") && !staticHTML.contains("href=\"javascript:")
             results["quickLookNoNetworkImages"] = !staticHTML.contains("<img src=\"https://") && staticHTML.contains("image not loaded")
             results["quickLookSource"] = staticHTML.contains("<summary>View Markdown source</summary>") && staticHTML.contains("&lt;script&gt;window.documentInjected")
@@ -59,9 +61,17 @@ final class RendererSelfTest {
             window?.setContentSize(NSSize(width: 840, height: 680))
             let timeout = DispatchWorkItem { [weak self] in self?.finish(error: "Renderer timed out") }
             self.timeout = timeout; DispatchQueue.main.asyncAfter(deadline: .now() + 30, execute: timeout)
+            var replacedWasCancelled = false
+            controller.preparePreviewOfFile(at: fixtureURL) { error in replacedWasCancelled = (error as NSError?)?.code == NSUserCancelledError }
+            let cancelledController = PreviewViewController()
+            var closedWasCancelled = false
+            cancelledController.preparePreviewOfFile(at: fixtureURL) { error in closedWasCancelled = (error as NSError?)?.code == NSUserCancelledError }
+            cancelledController.cancelPreparation()
+            results["closedPreviewRequestCancelled"] = closedWasCancelled
             controller.preparePreviewOfFile(at: fixtureURL) { [weak self] error in
                 guard let self else { return }
                 if let error { self.finish(error: error.localizedDescription); return }
+                self.results["replacedPreviewRequestCancelled"] = replacedWasCancelled
                 self.controller.webView.evaluateJavaScript("""
                 (() => {
                   const a = document.getElementById('rendered');
@@ -74,6 +84,10 @@ final class RendererSelfTest {
                     checklist: a.querySelectorAll('input[type=checkbox]').length === 2,
                     code: a.querySelector('pre code')?.textContent.includes('你好'),
                     quote: !!a.querySelector('blockquote'),
+                    highlightedCode: !!a.querySelector('pre code .tok-keyword'),
+                    tableOfContents: a.querySelectorAll('.toc nav a').length === 2,
+                    tocTargetsExist: [...a.querySelectorAll('.toc nav a')].every(link => document.getElementById(decodeURIComponent(link.hash.slice(1)))),
+                    documentHTMLInert: !a.querySelector('iframe,script,img[src^="http"]'),
                     safe: !window.documentInjected && !a.querySelector('script,iframe,[onerror],a[href^="javascript:"]'),
                     offline: !a.querySelector('img[src^="http"]') && !!a.querySelector('.image-placeholder'),
                     unicode: document.querySelector('#source code').textContent.includes('你好'),

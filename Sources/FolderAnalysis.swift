@@ -20,7 +20,7 @@ final class AnalysisCancellation: @unchecked Sendable {
 }
 
 enum AnalysisState: String, Codable, Sendable { case scanning, complete, stopped, limited }
-enum AnalysisMetric: String, CaseIterable { case logical = "Size", allocated = "On disk" }
+enum AnalysisMetric: String, CaseIterable, Sendable { case logical = "Size", allocated = "On disk" }
 
 struct AnalyzedFile: Identifiable, Sendable {
     var id: String { relativePath }
@@ -28,6 +28,9 @@ struct AnalyzedFile: Identifiable, Sendable {
     let relativePath: String
     let logicalBytes: Int64
     let allocatedBytes: Int64
+    var isDirectory = false
+    var partial = false
+    var fileCount = 0
     func bytes(_ metric: AnalysisMetric) -> Int64 { metric == .logical ? logicalBytes : allocatedBytes }
 }
 struct AnalyzedType: Identifiable, Sendable {
@@ -65,11 +68,14 @@ struct FolderAnalysisSnapshot: Sendable {
     var types: [AnalyzedType] = []
     var largestLogical: [AnalyzedFile] = []
     var largestAllocated: [AnalyzedFile] = []
+    var largestLogicalFolders: [AnalyzedFile] = []
+    var largestAllocatedFolders: [AnalyzedFile] = []
     var elapsedSeconds: Double = 0
     var isPartial: Bool {
         state != .complete || unreadableItems > 0 || cloudItemsSkipped > 0 || otherVolumesSkipped > 0 || unknownCloudMetadata > 0
     }
     func largest(_ metric: AnalysisMetric) -> [AnalyzedFile] { metric == .logical ? largestLogical : largestAllocated }
+    func largestFolders(_ metric: AnalysisMetric) -> [AnalyzedFile] { metric == .logical ? largestLogicalFolders : largestAllocatedFolders }
     func sortedTypes(_ metric: AnalysisMetric) -> [AnalyzedType] {
         types.sorted { $0.bytes(metric) == $1.bytes(metric) ? $0.name < $1.name : $0.bytes(metric) > $1.bytes(metric) }
     }
@@ -81,6 +87,10 @@ private final class ScanDirectory {
     let url: URL
     let relative: String
     let depth: Int
+    var logical: Int64 = 0
+    var allocated: Int64 = 0
+    var files = 0
+    var partial = false
     init(stream: UnsafeMutablePointer<DIR>, url: URL, relative: String, depth: Int) {
         self.stream = stream; self.url = url; self.relative = relative; self.depth = depth
     }
@@ -88,6 +98,10 @@ private final class ScanDirectory {
 }
 
 enum FolderAnalyzer {
+    static func addingBytes(_ lhs: Int64, _ rhs: Int64) -> (value: Int64, overflow: Bool) {
+        let sum = lhs.addingReportingOverflow(rhs)
+        return (sum.overflow ? Int64.max : sum.partialValue, sum.overflow)
+    }
     // Used by both the actual metadata reader and deterministic cloud-policy tests.
     static func excludesCloud(flags: UInt32, isUbiquitous: Bool, status: URLUbiquitousItemDownloadingStatus?) -> Bool {
         flags & UInt32(SF_DATALESS) != 0 || (isUbiquitous && status != .current && status != .downloaded)
@@ -106,12 +120,14 @@ enum FolderAnalyzer {
         var byteOverflow = false
 
         func issue(_ relative: String, _ message: String) {
+            stack.last?.partial = true
             result.unreadableItems += 1
             if result.issues.count < 16 { result.issues.append(AnalysisIssue(path: relative.isEmpty ? "." : relative, message: message)) }
         }
         func limit(_ message: String) {
             if !result.limitReasons.contains(message) { result.limitReasons.append(message) }
             forceLimited = true
+            stack.last?.partial = true
         }
         func snapshot() -> FolderAnalysisSnapshot {
             var copy = result
@@ -126,19 +142,20 @@ enum FolderAnalyzer {
             }
         }
         func add(_ value: Int64, to total: inout Int64) {
-            let sum = total.addingReportingOverflow(value)
-            total = sum.overflow ? Int64.max : sum.partialValue
-            if sum.overflow { byteOverflow = true }
+            let sum = addingBytes(total, value)
+            total = sum.value
+            if sum.overflow { byteOverflow = true; stack.last?.partial = true }
         }
         func cloudExcluded(_ url: URL, flags: UInt32, relative: String) -> Bool {
-            if flags & UInt32(SF_DATALESS) != 0 { result.cloudItemsSkipped += 1; return true }
+            if flags & UInt32(SF_DATALESS) != 0 { result.cloudItemsSkipped += 1; stack.last?.partial = true; return true }
             do {
                 let values = try url.resourceValues(forKeys: [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey])
                 if excludesCloud(flags: flags, isUbiquitous: values.isUbiquitousItem == true, status: values.ubiquitousItemDownloadingStatus) {
-                    result.cloudItemsSkipped += 1; return true
+                    result.cloudItemsSkipped += 1; stack.last?.partial = true; return true
                 }
             } catch {
                 // Be conservative if cloud residency cannot be established; never open contents to find out.
+                stack.last?.partial = true
                 result.unknownCloudMetadata += 1
                 if result.issues.count < 16 { result.issues.append(AnalysisIssue(path: relative, message: "Residency metadata unavailable; skipped: " + error.localizedDescription)) }
                 return true
@@ -154,6 +171,18 @@ enum FolderAnalyzer {
             } ?? list.endIndex
             list.insert(file, at: index)
             if list.count > options.largestFileLimit { list.removeLast() }
+        }
+
+        func closeDirectory(partial: Bool = false) {
+            let directory = stack.removeLast()
+            directory.partial = directory.partial || partial
+            if let parent = stack.last {
+                add(directory.logical, to: &parent.logical); add(directory.allocated, to: &parent.allocated)
+                parent.files += directory.files; parent.partial = parent.partial || directory.partial
+                let folder = AnalyzedFile(url: directory.url, relativePath: directory.relative, logicalBytes: directory.logical, allocatedBytes: directory.allocated, isDirectory: true, partial: directory.partial, fileCount: directory.files)
+                insert(folder, into: &result.largestLogicalFolders, metric: .logical)
+                insert(folder, into: &result.largestAllocatedFolders, metric: .allocated)
+            }
         }
 
         progress(result)
@@ -189,7 +218,7 @@ enum FolderAnalyzer {
             guard let entry = readdir(directory.stream) else {
                 let code = errno
                 if code != 0 { issue(directory.relative, String(cString: strerror(code))) }
-                stack.removeLast(); continue
+                closeDirectory(); continue
             }
             let name = withUnsafePointer(to: &entry.pointee.d_name) { pointer in
                 pointer.withMemoryRebound(to: CChar.self, capacity: Int(MAXNAMLEN) + 1) { String(cString: $0) }
@@ -205,7 +234,7 @@ enum FolderAnalyzer {
             if hidden && !options.includeHidden { result.hiddenEntriesSkipped += 1; continue }
             let mode = info.st_mode & S_IFMT
             if mode == S_IFLNK { result.symbolicLinksSkipped += 1; continue }
-            if info.st_dev != rootDevice { result.otherVolumesSkipped += 1; continue }
+            if info.st_dev != rootDevice { result.otherVolumesSkipped += 1; directory.partial = true; continue }
             guard mode == S_IFDIR || mode == S_IFREG else { result.otherItemsSkipped += 1; continue }
             let url = directory.url.appendingPathComponent(name, isDirectory: mode == S_IFDIR)
             if cloudExcluded(url, flags: info.st_flags, relative: relative) { continue }
@@ -232,6 +261,8 @@ enum FolderAnalyzer {
             let allocatedResult = max(0, Int64(info.st_blocks)).multipliedReportingOverflow(by: 512)
             let allocated = allocatedResult.overflow ? Int64.max : allocatedResult.partialValue
             byteOverflow = byteOverflow || allocatedResult.overflow
+            directory.files += 1
+            add(logical, to: &directory.logical); add(allocated, to: &directory.allocated)
             result.fileCount += 1
             add(logical, to: &result.logicalBytes)
             add(allocated, to: &result.allocatedBytes)
@@ -247,7 +278,7 @@ enum FolderAnalyzer {
             insert(file, into: &result.largestAllocated, metric: .allocated)
         }
         // Releasing the stack closes every directory descriptor, including on stop/error/limits.
-        stack.removeAll()
+        while !stack.isEmpty { closeDirectory(partial: true) }
         if byteOverflow { limit("Byte total exceeded the supported integer range.") }
         if cancellation.isCancelled || Task<Never, Never>.isCancelled { result.state = .stopped }
         else { result.state = forceLimited ? .limited : .complete }
