@@ -70,7 +70,7 @@ struct FolderAnalysisView: View {
         case .scanning: return "Scanning"
         case .stopped: return "Stopped · partial"
         case .limited: return "Limit reached · partial"
-        case .complete: return s.isPartial ? "Partial · \(s.fileCount.formatted()) files" : "\(s.fileCount.formatted()) files"
+        case .complete: return s.isPartial ? "Partial · \(s.fileCount.formatted()) \(s.fileCount == 1 ? "file" : "files")" : "\(s.fileCount.formatted()) \(s.fileCount == 1 ? "file" : "files")"
         }
     }
     private func types(_ s: FolderAnalysisSnapshot) -> some View {

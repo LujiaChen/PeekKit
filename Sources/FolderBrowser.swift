@@ -100,7 +100,7 @@ struct FolderBrowser: View {
                     }
                 }
                 Spacer(minLength: 12)
-                Text(model.mode == "Tree" ? "\(model.treeRows.count) tree rows" : model.query.isEmpty ? "\(model.entries.count) \(model.entries.count == 1 ? "item" : "items")" : "\(model.visible.count) of \(model.entries.count) items").foregroundStyle(.secondary).fixedSize()
+                Text(model.mode == "Tree" ? "\(model.treeRows.count) \(model.treeRows.count == 1 ? "tree row" : "tree rows")" : model.query.isEmpty ? "\(model.entries.count) \(model.entries.count == 1 ? "item" : "items")" : "\(model.visible.count) of \(model.entries.count) items").foregroundStyle(.secondary).fixedSize()
                 Menu {
                     Toggle("Show hidden files", isOn: $model.showHidden).keyboardShortcut(".", modifiers: [.command, .shift])
                     Button("Refresh") { model.load() }.keyboardShortcut("r", modifiers: .command)
