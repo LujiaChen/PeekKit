@@ -33,7 +33,7 @@ import Darwin
         do { _ = try await activeSeven.value; check("active7zCancellation",false) } catch is CancellationError { check("active7zCancellation",true) }
         let sevenCancelSeconds = ProcessInfo.processInfo.systemUptime-sevenCancelStart
         check("empty7z", try ArchiveReader.list(root.appendingPathComponent("empty.7z")).items.isEmpty)
-        for name in ["traversal","absolute","deep","backslash","dictionary","lzma1-dictionary","oversize","duplicate","symlink","reparse","conflict","startcrc","headercrc","datacrc","truncated","metadata","count","integer","encrypted","headerbomb","invalidutf16"] {
+        for name in ["traversal","absolute","deep","backslash","dictionary","lzma1-dictionary","oversize","duplicate","symlink","reparse","conflict","startcrc","headercrc","datacrc","truncated","metadata","count","integer","encrypted","headerbomb","invalidutf16","bomb","largeentry","headerdictionary"] {
             do { _ = try ArchiveReader.list(root.appendingPathComponent(name+".7z")); check(name+"7zRejected",false) } catch { check(name+"7zRejected",true) }
         }
         let sevenWorker = Task.detached { withUnsafeCurrentTask { $0?.cancel() }; return try ArchiveReader.list(root.appendingPathComponent("solid.7z")) }

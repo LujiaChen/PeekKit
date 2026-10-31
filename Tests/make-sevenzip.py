@@ -68,3 +68,7 @@ h,p=stream(b'x',override_size=1024*1024+1);(r/'headerbomb.7z').write_bytes(wrap(
 (r/'invalidutf16.7z').write_bytes(wrap(b'\x01\x05\x01\x11\x05\x00\x00\xd8\x00\x00\x00\x00'))
 
 (r/'large.7z').write_bytes(make(['large.txt'],[b'0'*(8*1024*1024)]))
+# Declared output lies about a much larger valid raw stream: bounded C output must stop it.
+(r/'bomb.7z').write_bytes(make(['bomb'],[b'0'*(33*1024*1024)],size=1024))
+(r/'largeentry.7z').write_bytes(make(size=33*1024*1024))
+h,p=stream(b'\x01\x00',override_props=b'\x28');(r/'headerdictionary.7z').write_bytes(wrap(b'\x17'+h,p))
