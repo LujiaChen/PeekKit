@@ -67,10 +67,19 @@ import Darwin
         do { _ = try FileBackedPDF.load(locked); check("encryptedPDFError",false) } catch { check("encryptedPDFError",true) }
         let worker = Task.detached { withUnsafeCurrentTask{$0?.cancel()}; return try FileBackedPDF.load(url) }
         do { _ = try await worker.value; check("pdfCancellation",false) } catch is CancellationError { check("pdfCancellation",true) }
-        func descriptors() -> Int { (0..<1024).filter { fcntl(Int32($0),F_GETFD) >= 0 }.count }
-        let baseline = descriptors()
-        for _ in 0..<30 { autoreleasepool { _ = try? FileBackedPDF.load(url) } }
-        check("pdfDescriptorCleanup",descriptors() <= baseline+2)
+        var descriptorsClosed = true
+        for _ in 0..<30 {
+            autoreleasepool {
+                var lease: FileBackedPDF? = try? FileBackedPDF.load(url)
+                guard let fd = lease?.descriptor else { descriptorsClosed = false; return }
+                var before = stat(); guard fstat(fd,&before) == 0 else { descriptorsClosed = false; return }
+                weak var weakLease = lease; lease = nil
+                var after = stat(); let valid = fstat(fd,&after) == 0
+                // A concurrent framework may reuse a closed descriptor number for another file.
+                descriptorsClosed = descriptorsClosed && weakLease == nil && (!valid || after.st_ino != before.st_ino || after.st_dev != before.st_dev)
+            }
+        }
+        check("pdfDescriptorCleanup",descriptorsClosed)
         // The opened inode stays pinned if its original pathname becomes a symlink.
         let pinnedURL = root.appendingPathComponent("pinned.pdf");try FileManager.default.copyItem(at:url,to:pinnedURL)
         let pinned = try FileBackedPDF.load(pinnedURL);try FileManager.default.removeItem(at:pinnedURL)

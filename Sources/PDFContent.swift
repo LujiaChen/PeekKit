@@ -25,7 +25,7 @@ final class PDFViewerController: NSViewController {
         pdfView.autoScales = true; pdfView.minScaleFactor = 0.1; pdfView.maxScaleFactor = 8
         pdfView.setAccessibilityLabel("PDF pages")
         pageField.alignment = .right; pageField.target = self; pageField.action = #selector(goToPage)
-        pageField.setAccessibilityLabel("PDF page number"); pageField.toolTip = "Enter a page number and press Return"
+        pageField.setAccessibilityLabel("PDF page number"); pageField.toolTip = "Enter a page number, then click Go"
         pageField.widthAnchor.constraint(equalToConstant: 55).isActive = true
         countLabel.setAccessibilityLabel("PDF page count")
         func button(_ title: String, _ action: Selector, _ label: String) -> NSButton {

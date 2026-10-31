@@ -9,6 +9,8 @@ final class FileBackedPDF {
     let document: PDFDocument
     private let handle: FileHandle
     var pageCount: Int { document.pageCount }
+    /// Identity of this session's owned descriptor (not PDFKit's independent caches).
+    var descriptor: Int32 { handle.fileDescriptor }
     static func load(_ url: URL) throws -> FileBackedPDF {
         try LocalFilePolicy.requireLocal(url)
         try Task<Never, Never>.checkCancellation()
