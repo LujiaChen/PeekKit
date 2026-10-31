@@ -54,6 +54,10 @@ struct FolderBrowser: View {
     @AppStorage("listColumnType") private var typeColumn = true
     @AppStorage("listColumnModified") private var dateColumn = true
     @AppStorage("listColumnSize") private var sizeColumn = true
+    @AppStorage("listColumnAllocated") private var allocatedColumn = false
+    @AppStorage("listColumnCreated") private var createdColumn = false
+    @AppStorage("listColumnAccessed") private var accessedColumn = false
+    @AppStorage("listColumnExtension") private var extensionColumn = false
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
@@ -65,7 +69,7 @@ struct FolderBrowser: View {
                 }
                 Spacer()
                 if model.selected == nil {
-                    Picker("Sort", selection: $model.sort) { ForEach(["Name", "Size", "Modified", "Type"], id: \.self) { Text($0).tag($0) } }.labelsHidden().frame(width: 110).help("Sort folders first, then by selected field")
+                    Picker("Sort", selection: $model.sort) { ForEach(["Name", "Size", "Modified", "Type", "Allocated", "Created", "Accessed", "Extension"], id: \.self) { Text($0).tag($0) } }.labelsHidden().frame(width: 110).help("Sort folders first, then by selected field")
                     Picker("View", selection: $model.mode) {
                         Image(systemName: "square.grid.2x2").accessibilityLabel("Grid").tag("Grid")
                         Image(systemName: "list.bullet").tag("List")
@@ -105,6 +109,10 @@ struct FolderBrowser: View {
                 Spacer(minLength: 12)
                 Text(model.mode == "Tree" ? "\(model.treeRows.count) \(model.treeRows.count == 1 ? "tree row" : "tree rows")" : model.query.isEmpty ? "\(model.entries.count) \(model.entries.count == 1 ? "item" : "items")" : "\(model.visible.count) of \(model.entries.count) items").foregroundStyle(.secondary).fixedSize()
                 Menu {
+                    Toggle("Allocated column",isOn:$allocatedColumn)
+                    Toggle("Created column",isOn:$createdColumn)
+                    Toggle("Accessed column",isOn:$accessedColumn)
+                    Toggle("Extension column",isOn:$extensionColumn)
                     Toggle("Type column", isOn:$typeColumn)
                     Toggle("Modified column", isOn:$dateColumn)
                     Toggle("Size column", isOn:$sizeColumn)
@@ -148,27 +156,45 @@ struct FolderBrowser: View {
     }
     var list: some View {
         ScrollViewReader { proxy in
+        GeometryReader { geometry in
+        ScrollView(.horizontal) {
         VStack(spacing: 0) {
-            HStack { Text("Name").frame(maxWidth: .infinity, alignment: .leading); if typeColumn { Text("Type").frame(width: 100, alignment: .leading) }; if dateColumn { Text("Modified").frame(width: 140, alignment: .leading) }; if sizeColumn { Text("Size").frame(width: 85, alignment: .trailing) } }.font(.caption).foregroundStyle(.secondary).padding(.horizontal,20).padding(.bottom,6)
+            listHeader
             ScrollView {
                 LazyVStack(spacing: 1) {
                     ForEach(Array(model.visible.enumerated()), id: \.element.id) { index, entry in
                         Button { model.enter(entry) } label: {
-                            HStack(spacing: 10) {
+                            listCell(entry, index:index)
+                        }.contextMenu { EntryActions(url: entry.url) }.buttonStyle(FolderCellStyle())
+                    }
+                }.padding(.horizontal,8)
+            }
+        }.frame(minWidth: max(listMinimumWidth, geometry.size.width))
+        }.focusable().onMoveCommand { model.moveFocus($0) }.onKeyPress(.return) { model.openFocused(); return .handled }
+        .onChange(of: model.focused) { _, url in if let url { proxy.scrollTo(url, anchor: .center) } }
+        }
+        }
+    }
+    private var listMinimumWidth: CGFloat {
+        let widths = [220, typeColumn ? 100:0, dateColumn ? 140:0, sizeColumn ? 85:0, allocatedColumn ? 100:0, createdColumn ? 140:0, accessedColumn ? 140:0, extensionColumn ? 80:0]
+        return CGFloat(widths.reduce(0,+))
+    }
+    private var listHeader: some View {
+HStack { Text("Name").frame(maxWidth: .infinity, alignment: .leading); if typeColumn { Text("Type").frame(width: 100, alignment: .leading) }; if dateColumn { Text("Modified").frame(width: 140, alignment: .leading) }; if sizeColumn { Text("Size").frame(width: 85, alignment: .trailing) }; if allocatedColumn { Text("Allocated").frame(width:100) }; if createdColumn { Text("Created").frame(width:140) }; if accessedColumn { Text("Accessed").frame(width:140) }; if extensionColumn { Text("Extension").frame(width:80) } }.font(.caption).foregroundStyle(.secondary).padding(.horizontal,20).padding(.bottom,6)
+    }
+    private func listCell(_ entry: FolderEntry, index: Int) -> some View {
+HStack(spacing: 10) {
                                 FileThumbnail(entry: entry, side: 24)
                                 Text(entry.name).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
                                 if typeColumn { Text(entry.kind).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 100, alignment: .leading) }
                                 if dateColumn { Text(entry.modified?.formatted(date: .abbreviated, time: .shortened) ?? "—").font(.caption).foregroundStyle(.secondary).frame(width: 140, alignment: .leading) }
                                 if sizeColumn { Text(entry.isFolder ? "—" : fileSize(entry.size)).font(.caption).foregroundStyle(.secondary).frame(width: 85, alignment: .trailing) }
+                                if allocatedColumn { Text(entry.allocated.map(fileSize) ?? "—").font(.caption).frame(width:100) }
+                                if createdColumn { Text(entry.created?.formatted(date:.abbreviated,time:.shortened) ?? "—").font(.caption).frame(width:140) }
+                                if accessedColumn { Text(entry.accessed?.formatted(date:.abbreviated,time:.shortened) ?? "—").font(.caption).frame(width:140) }
+                                if extensionColumn { Text(entry.fileExtension).font(.caption).frame(width:80) }
                                 Image(systemName: entry.isFolder ? "chevron.right" : "eye").font(.caption2).foregroundStyle(.tertiary).frame(width: 12)
                             }.padding(.horizontal,12).padding(.vertical,6).background(model.focused == entry.url ? Color.accentColor.opacity(0.16) : Color.clear).background(index.isMultiple(of: 2) ? Color.primary.opacity(0.035) : Color.clear, in: RoundedRectangle(cornerRadius: 6)).contentShape(Rectangle())
-                        }.contextMenu { EntryActions(url: entry.url) }.buttonStyle(FolderCellStyle())
-                    }
-                }.padding(.horizontal,8)
-            }
-        }.focusable().onMoveCommand { model.moveFocus($0) }.onKeyPress(.return) { model.openFocused(); return .handled }
-        .onChange(of: model.focused) { _, url in if let url { proxy.scrollTo(url, anchor: .center) } }
-        }
     }
     var tree: some View {
         ScrollViewReader { proxy in

@@ -17,6 +17,7 @@ struct FileInspectorView: View {
                 Grid(alignment: .leading, horizontalSpacing: 20, verticalSpacing: 8) {
                     row("Name", result.name)
                     row("Extension", result.fileExtension.isEmpty ? "—" : result.fileExtension)
+                    row("Kind", result.readableType ?? "Unavailable")
                     row("Type from extension", result.type ?? (result.isSymlink ? "Symbolic link" : "Unavailable"))
                     row("Size", fileSize(result.logicalBytes))
                     row("Allocated blocks", fileSize(result.allocatedBytes))
@@ -34,7 +35,7 @@ struct FileInspectorView: View {
                 Text(error).foregroundStyle(.secondary).textSelection(.enabled)
             } else { ProgressView("Reading metadata…") }
         }
-        .padding(20).frame(minWidth: 500, alignment: .leading)
+        .padding(20).frame(minWidth: 500, alignment: .leading).background(Color(nsColor:.windowBackgroundColor))
         .task(id: url) {
             result = nil; error = nil
             let worker = Task.detached(priority: .userInitiated) { try PeekKitInspection.read(url) }
@@ -47,6 +48,6 @@ struct FileInspectorView: View {
     }
 
     private func row(_ title: String, _ value: String) -> some View {
-        GridRow { Text(title).foregroundStyle(.secondary); Text(value).lineLimit(2) }
+        GridRow { Text(title).foregroundStyle(.secondary); Text(value).lineLimit(title == "Path" ? nil : 2).frame(maxWidth:600,alignment:.leading).fixedSize(horizontal:false,vertical:true) }
     }
 }

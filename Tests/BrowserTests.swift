@@ -79,6 +79,15 @@ import Darwin
         do { _ = try PeekKitInspection.read(base.appendingPathComponent("missing")); check("inspectorMissingFile",false) } catch { check("inspectorMissingFile",true) }
         check("inspectorImageDimensions", try PeekKitInspection.read(png).pixelDimensions == "2 × 2")
         check("inspectorPDFPages", try PeekKitInspection.read(pdfURL).pdfPages == 1)
+        var columnA = FolderEntry(url:base.appendingPathComponent("a.txt"),name:"a",isFolder:false,isLink:false,size:1,modified:nil,kind:"Text")
+        var columnB = FolderEntry(url:base.appendingPathComponent("b.png"),name:"b",isFolder:false,isLink:false,size:2,modified:nil,kind:"Image")
+        columnA.allocated = 8192; columnB.allocated = 4096
+        columnA.created = Date(timeIntervalSince1970:2); columnB.created = Date(timeIntervalSince1970:1)
+        columnA.accessed = columnA.created; columnB.accessed = columnB.created
+        check("sortAllocatedColumn",FolderOrdering.sorted([columnB,columnA],by:"Allocated").first?.name == "a")
+        check("sortCreatedColumn",FolderOrdering.sorted([columnB,columnA],by:"Created").first?.name == "a")
+        check("sortAccessedColumn",FolderOrdering.sorted([columnB,columnA],by:"Accessed").first?.name == "a")
+        check("sortExtensionColumn",FolderOrdering.sorted([columnA,columnB],by:"Extension").first?.name == "b")
         check("markdownDetection", isMarkdown(base.appendingPathComponent("x.MD")))
         model.load(base); model.dispose(); let before = model.entries.count
         try await Task.sleep(nanoseconds:100_000_000)

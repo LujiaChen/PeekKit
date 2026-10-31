@@ -10,6 +10,7 @@ struct PeekKitInspection: Sendable {
     let name: String
     let fileExtension: String
     let type: String?
+    var readableType: String? { type.flatMap { UTType($0)?.localizedDescription } }
     let logicalBytes: Int64
     let allocatedBytes: Int64
     let created: Date
