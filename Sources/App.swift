@@ -39,6 +39,8 @@ import Quartz
         window.title = "\(url.lastPathComponent) — PeekKit"; window.minSize = NSSize(width:620,height:440)
         if (try? url.resourceValues(forKeys:[.isDirectoryKey]).isDirectory) == true {
             window.contentView = NSHostingView(rootView: FolderBrowser(model: FolderModel(root:url)))
+        } else if ArchiveReader.recognizes(url) {
+            window.contentView = NSHostingView(rootView:ArchiveBrowser(url:url))
         } else if isMarkdown(url) {
             window.contentView = NSHostingView(rootView: MarkdownContent(url:url))
         } else {

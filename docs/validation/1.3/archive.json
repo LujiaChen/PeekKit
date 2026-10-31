@@ -1,0 +1,30 @@
+{
+  "checks" : {
+    "absolute.zipRejected" : true,
+    "bomb.zipRejected" : true,
+    "cancellation" : true,
+    "corrupt.zipRejected" : true,
+    "deep.tarRejected" : true,
+    "duplicate.zipRejected" : true,
+    "emptyZip" : true,
+    "encrypted.zipRejected" : true,
+    "fifo.tarRejected" : true,
+    "hardlink.tarRejected" : true,
+    "huge.tarRejected" : true,
+    "many.tarRejected" : true,
+    "oversize.zipRejected" : true,
+    "symlink.tarRejected" : true,
+    "tar.bz2Hierarchy" : true,
+    "tar.bz2Preview" : true,
+    "tar.gzHierarchy" : true,
+    "tar.gzPreview" : true,
+    "tarHierarchy" : true,
+    "tarPreview" : true,
+    "traversal.tarRejected" : true,
+    "truncated.zipRejected" : true,
+    "valid.tar.xzRejected" : true,
+    "zipHierarchy" : true,
+    "zipPreview" : true
+  },
+  "passed" : true
+}

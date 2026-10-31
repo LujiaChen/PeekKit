@@ -15,7 +15,8 @@ final class PreviewController: NSViewController, QLPreviewingController {
         scopedURL = url; accessActive = url.startAccessingSecurityScopedResource()
         let model = FolderModel(root: url)
         folderModel = model
-        let host = NSHostingController(rootView: FolderBrowser(model: model))
+        let content: AnyView = ArchiveReader.recognizes(url) ? AnyView(ArchiveBrowser(url:url)) : AnyView(FolderBrowser(model:model))
+        let host = NSHostingController(rootView: content)
         // Quick Look owns the preview size; folder content must not shrink its host.
         host.sizingOptions = []
         addChild(host)

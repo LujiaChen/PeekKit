@@ -77,6 +77,8 @@ import Darwin
         let linkInspection = try PeekKitInspection.read(alias)
         check("inspectorDoesNotFollowSymlink", linkInspection.isSymlink && linkInspection.type == nil)
         do { _ = try PeekKitInspection.read(base.appendingPathComponent("missing")); check("inspectorMissingFile",false) } catch { check("inspectorMissingFile",true) }
+        check("inspectorImageDimensions", try PeekKitInspection.read(png).pixelDimensions == "2 × 2")
+        check("inspectorPDFPages", try PeekKitInspection.read(pdfURL).pdfPages == 1)
         check("markdownDetection", isMarkdown(base.appendingPathComponent("x.MD")))
         model.load(base); model.dispose(); let before = model.entries.count
         try await Task.sleep(nanoseconds:100_000_000)

@@ -51,6 +51,9 @@ func fileSize(_ bytes: Int64) -> String { ByteCountFormatter.string(fromByteCoun
 struct FolderBrowser: View {
     @ObservedObject var model: FolderModel
     @FocusState private var searchFocused: Bool
+    @AppStorage("listColumnType") private var typeColumn = true
+    @AppStorage("listColumnModified") private var dateColumn = true
+    @AppStorage("listColumnSize") private var sizeColumn = true
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
@@ -102,6 +105,9 @@ struct FolderBrowser: View {
                 Spacer(minLength: 12)
                 Text(model.mode == "Tree" ? "\(model.treeRows.count) \(model.treeRows.count == 1 ? "tree row" : "tree rows")" : model.query.isEmpty ? "\(model.entries.count) \(model.entries.count == 1 ? "item" : "items")" : "\(model.visible.count) of \(model.entries.count) items").foregroundStyle(.secondary).fixedSize()
                 Menu {
+                    Toggle("Type column", isOn:$typeColumn)
+                    Toggle("Modified column", isOn:$dateColumn)
+                    Toggle("Size column", isOn:$sizeColumn)
                     Toggle("Show hidden files", isOn: $model.showHidden).keyboardShortcut(".", modifiers: [.command, .shift])
                     Button("Refresh") { model.load() }.keyboardShortcut("r", modifiers: .command)
                 } label: { Image(systemName: "ellipsis.circle").font(.system(size: 15)) }
@@ -143,7 +149,7 @@ struct FolderBrowser: View {
     var list: some View {
         ScrollViewReader { proxy in
         VStack(spacing: 0) {
-            HStack { Text("Name").frame(maxWidth: .infinity, alignment: .leading); Text("Type").frame(width: 100, alignment: .leading); Text("Modified").frame(width: 140, alignment: .leading); Text("Size").frame(width: 85, alignment: .trailing) }.font(.caption).foregroundStyle(.secondary).padding(.horizontal,20).padding(.bottom,6)
+            HStack { Text("Name").frame(maxWidth: .infinity, alignment: .leading); if typeColumn { Text("Type").frame(width: 100, alignment: .leading) }; if dateColumn { Text("Modified").frame(width: 140, alignment: .leading) }; if sizeColumn { Text("Size").frame(width: 85, alignment: .trailing) } }.font(.caption).foregroundStyle(.secondary).padding(.horizontal,20).padding(.bottom,6)
             ScrollView {
                 LazyVStack(spacing: 1) {
                     ForEach(Array(model.visible.enumerated()), id: \.element.id) { index, entry in
@@ -151,9 +157,9 @@ struct FolderBrowser: View {
                             HStack(spacing: 10) {
                                 FileThumbnail(entry: entry, side: 24)
                                 Text(entry.name).lineLimit(1).frame(maxWidth: .infinity, alignment: .leading)
-                                Text(entry.kind).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 100, alignment: .leading)
-                                Text(entry.modified?.formatted(date: .abbreviated, time: .shortened) ?? "—").font(.caption).foregroundStyle(.secondary).frame(width: 140, alignment: .leading)
-                                Text(entry.isFolder ? "—" : fileSize(entry.size)).font(.caption).foregroundStyle(.secondary).frame(width: 85, alignment: .trailing)
+                                if typeColumn { Text(entry.kind).font(.caption).foregroundStyle(.secondary).lineLimit(1).frame(width: 100, alignment: .leading) }
+                                if dateColumn { Text(entry.modified?.formatted(date: .abbreviated, time: .shortened) ?? "—").font(.caption).foregroundStyle(.secondary).frame(width: 140, alignment: .leading) }
+                                if sizeColumn { Text(entry.isFolder ? "—" : fileSize(entry.size)).font(.caption).foregroundStyle(.secondary).frame(width: 85, alignment: .trailing) }
                                 Image(systemName: entry.isFolder ? "chevron.right" : "eye").font(.caption2).foregroundStyle(.tertiary).frame(width: 12)
                             }.padding(.horizontal,12).padding(.vertical,6).background(model.focused == entry.url ? Color.accentColor.opacity(0.16) : Color.clear).background(index.isMultiple(of: 2) ? Color.primary.opacity(0.035) : Color.clear, in: RoundedRectangle(cornerRadius: 6)).contentShape(Rectangle())
                         }.contextMenu { EntryActions(url: entry.url) }.buttonStyle(FolderCellStyle())
@@ -210,7 +216,8 @@ struct FileDetail: View {
                 Button { showingInspector = true } label: { Image(systemName: "info.circle") }
                     .help("File information").accessibilityLabel("File information")
             }.padding(.horizontal,20).padding(.top,16)
-            if markdown {
+            if ArchiveReader.recognizes(entry.url) { ArchiveBrowser(url:entry.url) }
+            else if markdown {
                 #if FOLDER_EXTENSION
                 NativeMarkdownContent(url: entry.url).id(entry.url)
                 #else

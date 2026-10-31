@@ -24,6 +24,9 @@ struct FileInspectorView: View {
                     row("Modified", result.modified.formatted())
                     row("Last accessed", result.accessed.formatted())
                     row("Permissions", result.permissions)
+                    row("Symbolic link", result.isSymlink ? "Yes" : "No")
+                    if let pixels = result.pixelDimensions { row("Pixels", pixels) }
+                    if let pages = result.pdfPages { row("PDF pages", String(pages)) }
                     row("Path", result.path)
                 }.textSelection(.enabled)
                 Text("Allocated blocks are not necessarily exclusive or reclaimable space.").font(.caption).foregroundStyle(.secondary)

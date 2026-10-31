@@ -3,7 +3,9 @@
 ## Unreleased — file information (development)
 
 - Add an asynchronous metadata-only file information panel for existing file previews.
-- Archive browsing and configurable list columns are not implemented yet.
+- Development archive tree/directory browsing, search, sorting and bounded in-memory previews for ZIP/TAR/GZip/BZip2 TAR. Unsafe entries fail closed.
+- Persisted Type/Modified/Size list-column toggles; bounded local image/PDF inspector metadata.
+- Archive integration and adversarial resource validation remain required before release.
 
 ## 1.2.0 — browsing, analysis and offline rendering
 

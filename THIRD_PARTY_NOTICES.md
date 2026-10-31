@@ -13,3 +13,5 @@ The folder analyzer is independently implemented. No PeekX implementation code w
 The Apple frameworks and SF Symbols used by the application are supplied by macOS and Apple's SDKs; they are not redistributed as source dependencies. Documentation screenshots show PeekKit running with synthetic sample files.
 
 Version 1.2 adds independently implemented lexical highlighting and heading navigation; no new vendored library is introduced. Existing license texts remain unchanged.
+
+Archive public headers: libarchive v3.7.7, BSD license retained at Vendor/LibArchive/COPYING; provenance in Vendor/LibArchive/PROVENANCE.md. Decoding uses the OS library, not an included third-party executable.

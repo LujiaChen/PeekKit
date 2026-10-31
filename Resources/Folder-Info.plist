@@ -31,6 +31,11 @@
 			<key>QLSupportedContentTypes</key>
 			<array>
 				<string>public.folder</string>
+<string>public.zip-archive</string>
+<string>public.tar-archive</string>
+<string>org.gnu.gnu-zip-archive</string>
+<string>public.bzip2-archive</string>
+
 			</array>
 			<key>QLSupportsSearchableItems</key>
 			<false/>
