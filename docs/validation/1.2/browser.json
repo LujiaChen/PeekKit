@@ -1,0 +1,35 @@
+{
+  "benchmark" : {
+    "cachedPresentationReadSeconds" : 4.8750080168247223e-06,
+    "entries" : 20000,
+    "legacyRepeatedSortSeconds" : 0.077340541669400409,
+    "reads" : 20
+  },
+  "checks" : {
+    "backNavigation" : true,
+    "cachedPresentationCount" : true,
+    "closedBrowserModelReleased" : true,
+    "disposeRejectsLateListing" : true,
+    "filterDoesNotRestartAnalysis" : true,
+    "initialListingAndFolderFirst" : true,
+    "keyboardFocus" : true,
+    "keyboardOpenFolder" : true,
+    "malformedTextDoesNotCrash" : true,
+    "markdownDetection" : true,
+    "navigationCannotEscapeRoot" : true,
+    "navigationRejectsStaleTreeResults" : true,
+    "previewRejectsSymlink" : true,
+    "sortModified" : true,
+    "sortName" : true,
+    "sortSize" : true,
+    "sortType" : true,
+    "treeCollapse" : true,
+    "treeExpansion" : true,
+    "treeFilterKeepsAncestor" : true,
+    "treePermissionError" : true,
+    "utf8BoundaryPreview" : true,
+    "utf16TextPreview" : true,
+    "viewPreferencesPersist" : true
+  },
+  "passed" : true
+}

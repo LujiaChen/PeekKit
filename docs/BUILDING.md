@@ -44,3 +44,9 @@ The script builds the host and both extensions, copies local renderer assets/not
 | `Tools/MakeIcon.swift` | Procedural application icon |
 
 Finder runs the extensions on demand. No global hotkey listener, login item, daemon or main app background process is installed.
+
+## 1.2 modules and production packaging
+
+FolderEntry and FolderOrdering are immutable metadata/ordering helpers; FolderModel owns listing, tree requests, cached presentation and cancellation generations. LocalFilePolicy is shared by browsing and explicit content previews. PreviewPayload performs bounded text/PDF/image work on a worker. AnalysisExport serializes scope and bounded results without filesystem writes.
+
+For production signing, set PEEKKIT_SIGN_IDENTITY to a Developer ID Application identity. Tools/package.sh /path/to/PeekKit.app /new/output/directory additionally requires PEEKKIT_NOTARY_PROFILE naming an existing notarytool keychain profile. It verifies notarization/stapling/Gatekeeper before producing the notarized ZIP. This credentialed path remains untested locally; no secrets are needed for default builds or CI.

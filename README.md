@@ -8,9 +8,20 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
+## New in 1.2.0
+
+- Expand a bounded folder tree; filter loaded names without rescanning disk. Lists include file type, size and modification date.
+- Navigate with arrow keys and Return; use ⌘[ for Back, ⌘F for filtering, ⌘R for refresh, and ⇧⌘. for hidden files.
+- Context actions: Reveal in Finder, Copy Path, Open in Default App and Open With.
+- Compare largest files **and nested folders**, see storage shares, and copy an analysis summary as JSON or spreadsheet-safe CSV.
+- Shared offline Markdown rendering with bounded lexical code highlighting, improved tables/quotes and clickable contents in HTML previews.
+- Worker-based sorting, reading and decoding; stale-result protection and metadata-aware thumbnail caching.
+
+[Detailed changes](CHANGELOG.md) · [Architecture](docs/BUILDING.md) · [Keyboard and limitations](docs/UPGRADE-1.2.md)
+
 ## What it does
 
-- Browse folders in a grid or list, enter subfolders, sort by name/date/size, filter names, and show hidden files.
+- Browse folders in a grid, list or lazily expanded tree, enter subfolders, sort by name/date/size/type, filter names, and show hidden files.
 - Measure recursive logical size and allocated file blocks in the background, with progress and Stop/Rescan controls.
 - See file counts and capacity by extension, plus the 20 largest files under either size metric. Open a preview or reveal a result in Finder.
 - Preview images, PDFs, text and Markdown inside the folder browser. Open Markdown directly with Finder Quick Look, including headings, tables, code and checklists.
@@ -24,11 +35,11 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![Markdown preview in PeekKit](docs/images/markdown-preview.jpg)
 
-Actual application screenshots using synthetic sample data. The grid is Finder Quick Look; analysis and Markdown images use the standalone preview window. No personal folders are shown.
+The screenshots above document 1.1.0. New 1.2.0 screenshots and validation notes are in [the upgrade guide](docs/UPGRADE-1.2.md). Actual application screenshots use synthetic sample data. The grid is Finder Quick Look; analysis and Markdown images use the standalone preview window. No personal folders are shown.
 
 ## Get started
 
-Requires **Apple Silicon and macOS 14 or later**. For this initial public preview, build locally using Xcode, move the resulting app to Applications, then enable **PeekKit Folder** and **PeekKit Markdown** in Quick Look extensions.
+Requires **Apple Silicon and macOS 14 or later**. For this source release, build locally using Xcode, move the resulting app to Applications, then enable **PeekKit Folder** and **PeekKit Markdown** in Quick Look extensions.
 
 ```sh
 git clone https://github.com/LujiaChen/PeekKit.git
@@ -36,7 +47,7 @@ cd PeekKit
 ./build.sh
 ```
 
-The app is written to `.build/PeekKit.app`. The default build uses ad-hoc signing. A Developer ID–signed, notarized download is not provided in this initial release; installation/extension behavior on another Mac still needs validation. [Installation and troubleshooting →](docs/INSTALL.md)
+The app is written to `.build/PeekKit.app`. The default build uses ad-hoc signing. A Developer ID–signed, notarized download is not provided in this source release; installation/extension behavior on another Mac still needs validation. [Installation and troubleshooting →](docs/INSTALL.md)
 
 In Finder, select a folder or Markdown file and press **Space**. Click **Analysis** to expand file types, largest files, and scope details.
 

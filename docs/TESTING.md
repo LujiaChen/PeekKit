@@ -1,5 +1,17 @@
 # Testing and verification
 
+## Version 1.2 suites
+
+```sh
+./Tests/run.sh
+./Tests/browser.sh
+./build.sh
+./Tests/content.sh
+./Tools/test-renderer.sh
+```
+
+All scripts exit nonzero on a failing check and retain JSON reports in .build/test-results. Synthetic fixtures are removed by the runners. Renderer checks require a macOS graphical session. New validation and benchmark boundaries are in [UPGRADE-1.2.md](UPGRADE-1.2.md); 1.1 results below are historical.
+
 ## Reproduce
 
 ```sh

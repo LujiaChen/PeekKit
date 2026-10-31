@@ -1,0 +1,24 @@
+{
+  "checks" : {
+    "csvEscapesAndNeutralizesFormula" : true,
+    "emptyMarkdownState" : true,
+    "folderOverlapNotAddedToTotal" : true,
+    "folderRecursiveSizes" : true,
+    "highlightSizeBound" : true,
+    "integerOverflowSaturates" : true,
+    "interactiveSharesStaticBody" : true,
+    "invalidEncodingRejected" : true,
+    "jsonRoundTrip" : true,
+    "oversizeRejected" : true,
+    "partialScanClosesDescriptors" : true,
+    "quickLookScriptlessCSP" : true,
+    "staticHighlightEscapesCode" : true,
+    "staticNoExecutableDocumentHTML" : true,
+    "tableFormatting" : true,
+    "templateMarkersRemainLiteral" : true,
+    "tocUniqueAnchors" : true,
+    "unfinishedFoldersMarkedPartial" : true,
+    "unknownLanguageEscaped" : true
+  },
+  "passed" : true
+}

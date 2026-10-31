@@ -8,6 +8,17 @@
 
 ![PeekKit 文件夹分析](docs/images/folder-analysis.jpg)
 
+## 1.2.0 更新
+
+- 新增按需展开的树形视图，列表增加类型列，支持名称、大小、日期、类型排序。
+- 方向键和 Return 浏览；⌘[ 返回，⌘F 筛选，⌘R 刷新，⇧⌘. 切换隐藏文件。
+- 右键可定位到 Finder、复制路径、用默认应用打开或选择应用。
+- 新增大文件夹排名、容量比例图，支持复制 JSON 和防公式注入的 CSV 摘要。
+- Markdown 统一安全渲染，增加有大小上限的词法代码高亮，改善表格及引用，HTML 预览支持可点击目录。
+- 排序、读取、解码放到后台；加强导航、取消及缩略图缓存管理。
+
+[更新详情、键盘及限制](docs/UPGRADE-1.2.md)
+
 ## 功能
 
 - 文件夹网格和列表视图、子目录浏览、名称/日期/大小排序、名称筛选及隐藏文件开关。
@@ -22,11 +33,11 @@
 
 ![Markdown 预览](docs/images/markdown-preview.jpg)
 
-以上为真实应用截图，使用专门制作的示例文件。网格图来自 Finder Quick Look，分析和 Markdown 图来自独立预览窗口，没有展示私人文件夹。
+上方截图记录 1.1.0，1.2.0 新界面见[升级说明](docs/UPGRADE-1.2.md)。以上为真实应用截图，使用专门制作的示例文件。网格图来自 Finder Quick Look，分析和 Markdown 图来自独立预览窗口，没有展示私人文件夹。
 
 ## 安装
 
-要求 **Apple Silicon、macOS 14 或更新版本，以及 Xcode**。首个公开预览版以源码构建为主：
+要求 **Apple Silicon、macOS 14 或更新版本，以及 Xcode**。当前源码预览版以源码构建为主：
 
 ```sh
 git clone https://github.com/LujiaChen/PeekKit.git
