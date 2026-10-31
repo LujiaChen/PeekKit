@@ -6,7 +6,7 @@ mkdir -p "$(dirname "$REPORT")"
 TEMP="$(mktemp -d "${TMPDIR:-/tmp}/peekkit-archive.XXXXXX")"
 trap 'chmod -R u+rwX "$TEMP" 2>/dev/null || true; rm -rf "$TEMP"' EXIT
 python3 - "$TEMP" <<'PY'
-import io,tarfile,zipfile,pathlib,sys,subprocess
+import io,tarfile,zipfile,pathlib,sys,subprocess,struct,gzip
 r=pathlib.Path(sys.argv[1])
 for suffix,mode in [('tar','w'),('tar.gz','w:gz'),('tar.bz2','w:bz2'),('tar.xz','w:xz')]:
  with tarfile.open(r/('valid.'+suffix),mode) as a:
@@ -26,6 +26,21 @@ with zipfile.ZipFile(r/'bomb.zip','w',compression=zipfile.ZIP_DEFLATED) as a:a.w
 (r/'corrupt.zip').write_bytes(b'PKxxjunk')
 b=(r/'valid.zip').read_bytes();(r/'truncated.zip').write_bytes(b[:len(b)//2])
 with (r/'oversize.zip').open('wb') as f:f.truncate(64*1024*1024+1)
+with tarfile.open(r/'large.tar','w') as a:
+ for i in range(5000):a.addfile(tarfile.TarInfo('directory/'+str(i)))
+with tarfile.open(r/'empty.tar','w'):pass
+(r/'truncated.tar').write_bytes((r/'valid.tar').read_bytes()[:600])
+(r/'truncated.tgz').write_bytes((r/'valid.tar.gz').read_bytes()[:-8])
+with tarfile.open(r/'metadata.tar','w') as a:
+ t=tarfile.TarInfo('pax');t.type=tarfile.XHDTYPE;t.size=32769;a.addfile(t,io.BytesIO(b'x'*32769))
+with gzip.open(r/'headerbomb.tgz','wb') as f:
+ for _ in range(129):f.write(b'0'*(1024*1024))
+b=bytearray((r/'valid.zip').read_bytes());b[8:10]=struct.pack('<H',14);(r/'localmethod.zip').write_bytes(b)
+b=bytearray((r/'valid.zip').read_bytes());start=30+struct.unpack_from('<H',b,26)[0]+struct.unpack_from('<H',b,28)[0];b[start]^=255;(r/'crc.zip').write_bytes(b)
+with zipfile.ZipFile(r/'large.zip','w',compression=zipfile.ZIP_DEFLATED) as a:a.writestr('large.txt',b'0'*(8*1024*1024))
+b=bytearray((r/'valid.tar').read_bytes());b[0]^=1;(r/'checksum.tar').write_bytes(b)
+with tarfile.open(r/'conflict.tar','w') as a:
+ a.addfile(tarfile.TarInfo('file'));a.addfile(tarfile.TarInfo('file/child'))
 (r/'secret.txt').write_text('secret');subprocess.run(['/usr/bin/zip','-q','-P','fixture-password',str(r/'encrypted.zip'),'secret.txt'],cwd=r,check=True)
 PY
 xcrun swiftc -O -swift-version 5 -I "$ROOT/Vendor/LibArchive" -module-cache-path "$TEMP/cache" -parse-as-library "$ROOT/Sources/ArchiveReader.swift" "$ROOT/Sources/FolderAnalysis.swift" "$ROOT/Sources/LocalFilePolicy.swift" "$ROOT/Tests/ArchiveTests.swift" -o "$TEMP/tests"
