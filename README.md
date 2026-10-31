@@ -8,9 +8,12 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
-## Development branch: file information
+## 1.3.0 release candidate
 
-The file preview includes a File Information button with metadata such as path, type inferred from its extension, logical size, allocated blocks, dates and permissions. Development archive browsing supports bounded ZIP (store/deflate), TAR, TGZ and TBZ2 streams. See [archive development limits](docs/ARCHIVES.md). This is development work and has not been released.
+- Browse ZIP (store/deflate), TAR, TGZ and TBZ2 in a tree or directory list, search paths, and preview text, images, PDFs and bounded Markdown offline.
+- Archive parsing now preflights ZIP local/central headers and TAR metadata before native parsing, with bounded filter expansion. XZ/7z/RAR are disabled.
+- Inspect dimensions, PDF page count, sizes, dates, permissions and paths. Configure cached list columns, including allocation, creation/access dates and extension.
+- [Support and security limits](docs/ARCHIVES.md) · [Tests, measurements and real screenshots](docs/VALIDATION-1.3.md).
 
 ## New in 1.2.0
 

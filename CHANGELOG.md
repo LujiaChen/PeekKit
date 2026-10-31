@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased — file information (development)
+## 1.3.0 — release candidate
 
 - Add an asynchronous metadata-only file information panel for existing file previews.
 - Development archive tree/directory browsing, search, sorting and bounded in-memory previews for ZIP/TAR/GZip/BZip2 TAR. Unsafe entries fail closed.
 - Persisted Type/Modified/Size list-column toggles; bounded local image/PDF inspector metadata.
-- Archive integration and adversarial resource validation remain required before release.
+- Bounded raw filter expansion, fixed-header TAR preflight and ZIP local/central consistency checks; malicious metadata and compressed-header bomb regressions.
+- Native safe Markdown previews for selected entries; cancellation controls and expanded cached list columns.
+- Authentic standalone snapshots and scoped memory/timing measurements; Finder/VoiceOver limits disclosed.
 
 ## 1.2.0 — browsing, analysis and offline rendering
 

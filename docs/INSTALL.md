@@ -1,8 +1,8 @@
 # Installation and troubleshooting
 
-## Initial release status
+## Source release status
 
-PeekKit currently provides source for Apple Silicon/macOS 14+. Build it locally with [these steps](BUILDING.md). The default signing is ad-hoc; the first public preview does **not** include a Developer ID–signed, notarized download. Local success is not a guarantee that Gatekeeper or Quick Look will accept a copied development build on another Mac.
+PeekKit currently provides source for Apple Silicon/macOS 14+. Build it locally with [these steps](BUILDING.md). The default signing is ad-hoc; the source preview does **not** include a Developer ID–signed, notarized download. Local success is not a guarantee that Gatekeeper or Quick Look will accept a copied development build on another Mac.
 
 ## Enable Finder previews
 
@@ -27,3 +27,7 @@ Do not disable Gatekeeper, SIP or the extension sandbox to install PeekKit. If a
 Disable PeekKit's two Quick Look extensions, quit its standalone app, then move PeekKit.app to Trash. No daemon or login item needs removal.
 
 Apple's settings reference: [Login Items & Extensions](https://support.apple.com/guide/mac-help/mtusr003/mac).
+
+## 1.3 archive previews
+
+The existing PeekKit Folder extension also declares ZIP, TAR, gzip and bzip2 types. Formats and limits: [ARCHIVES.md](ARCHIVES.md). Close Quick Look after updating; avoid duplicate development copies. A standalone preview is useful to distinguish parser errors from system extension selection. Source-only/ad-hoc builds are not notarized. No paid account is needed for the build. See [validation scope](VALIDATION-1.3.md) before relying on Finder integration on a different Mac.

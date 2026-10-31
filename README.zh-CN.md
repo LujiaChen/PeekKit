@@ -8,9 +8,12 @@
 
 ![PeekKit 文件夹分析](docs/images/folder-analysis.jpg)
 
-## 开发中：文件信息
+## 1.3.0 候选版本
 
-文件预览中的信息按钮可显示路径、根据扩展名推断的类型、逻辑大小、分配块、日期与权限。开发版已接入有界 ZIP（存储/Deflate）、TAR、TGZ、TBZ2 浏览；详见 [限制与验证范围](docs/ARCHIVES.md)。此功能仍在开发中。
+- 新增 ZIP（存储/Deflate）、TAR、TGZ、TBZ2 树形和目录浏览、路径搜索，以及离线文本、图片、PDF 和有界 Markdown 预览。
+- 压缩流先在输出预算内展开，再预检 TAR/ZIP 头部；禁用 XZ、7z、RAR。协作式时间限制不等于硬 CPU/RSS 上限。
+- 信息面板增加图片尺寸、PDF 页数、类型、权限和日期；列表可配置逻辑大小、分配块、创建/访问日期等列，使用后台缓存元数据。
+- [支持矩阵与安全边界](docs/ARCHIVES.md) · [测试、测量与真实截图](docs/VALIDATION-1.3.md)。
 
 ## 1.2.0 更新
 

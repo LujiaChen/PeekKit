@@ -1,8 +1,8 @@
 {
   "benchmark" : {
-    "cachedPresentationReadSeconds" : 1.09999964479357e-05,
+    "cachedPresentationReadSeconds" : 1.8083344912156463e-05,
     "entries" : 20000,
-    "legacyRepeatedSortSeconds" : 0.082182541664224118,
+    "legacyRepeatedSortSeconds" : 0.096857249998720363,
     "reads" : 20
   },
   "checks" : {
@@ -26,6 +26,10 @@
     "navigationRejectsStaleTreeResults" : true,
     "pdfPreviewDecode" : true,
     "previewRejectsSymlink" : true,
+    "sortAccessedColumn" : true,
+    "sortAllocatedColumn" : true,
+    "sortCreatedColumn" : true,
+    "sortExtensionColumn" : true,
     "sortModified" : true,
     "sortName" : true,
     "sortSize" : true,
