@@ -1,0 +1,28 @@
+{
+  "checks" : {
+    "corruptPDFError" : true,
+    "dismantleClearsDocument" : true,
+    "encryptedPDFError" : true,
+    "fileBackedDocumentURL" : true,
+    "largeFileBackedPDF" : true,
+    "missingPDFError" : true,
+    "navigateMultipage" : true,
+    "pageNavigationClamped" : true,
+    "pdfCancellation" : true,
+    "pdfDescriptorCleanup" : true,
+    "pdfRecoveryAfterError" : true,
+    "pinnedInodeAfterReplacement" : true,
+    "sameDocumentKeepsPage" : true,
+    "switchDocument" : true,
+    "symlinkPDFRejected" : true,
+    "unreadablePDFError" : true,
+    "zoomPDF" : true
+  },
+  "metrics" : {
+    "largePDFOpenSeconds" : 0.0011652916728053242,
+    "logicalBytes" : 87027883,
+    "note" : "Sparse synthetic PDF; not a real-image rendering benchmark",
+    "pages" : 40
+  },
+  "passed" : true
+}

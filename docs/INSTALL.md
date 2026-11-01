@@ -31,3 +31,7 @@ Apple's settings reference: [Login Items & Extensions](https://support.apple.com
 ## 1.3 archive previews
 
 The existing PeekKit Folder extension also declares ZIP, TAR, gzip and bzip2 types. Formats and limits: [ARCHIVES.md](ARCHIVES.md). Close Quick Look after updating; avoid duplicate development copies. A standalone preview is useful to distinguish parser errors from system extension selection. Source-only/ad-hoc builds are not notarized. No paid account is needed for the build. See [validation scope](VALIDATION-1.3.md) before relying on Finder integration on a different Mac.
+
+## 1.3.1 upgrade
+
+Build the tagged source with build.sh. Keep a temporary recoverable old app until folder, direct Markdown, archives and PDF previews work. Replace the Applications bundle, open it once and close/reopen Quick Look. Both registered extensions must show 1.3.1 build 7 from the single Applications app. Folder now declares org.7-zip.7-zip-archive. Remove the temporary old copy after verification; do not disable macOS security protections.

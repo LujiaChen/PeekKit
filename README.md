@@ -8,10 +8,18 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
+## 1.3.1 — Large PDFs & safe 7z browsing
+
+- File-backed PDFKit reader with continuous scrolling, zoom, page navigation/counts and explicit errors. Removes the old 50 MB icon fallback without increasing a Data limit.
+- 7z Copy/LZMA1/LZMA2 browsing, including bounded solid blocks/compressed headers; dictionaries ≤8 MiB. Encryption, filter chains, unsafe paths and over-budget inputs fail closed.
+- [PDF architecture](docs/PDF.md) · [Archive limits](docs/ARCHIVES.md) · [Current validation](docs/VALIDATION-1.3.1.md).
+
+![7z tree in Finder](docs/images/1.3.1/finder-7z-tree.png)
+
 ## 1.3.0 — Archive Browsing & File Inspector
 
 - Browse ZIP (store/deflate), TAR, TGZ and TBZ2 in a tree or directory list, search paths, and preview text, images, PDFs and bounded Markdown offline.
-- Archive parsing now preflights ZIP local/central headers and TAR metadata before native parsing, with bounded filter expansion. XZ/7z/RAR are disabled.
+- Archive parsing now preflights ZIP local/central headers and TAR metadata before native parsing, with bounded filter expansion. XZ/RAR remain disabled; 1.3.1 adds restricted 7z support.
 - Inspect dimensions, PDF page count, sizes, dates, permissions and paths. Configure cached list columns, including allocation, creation/access dates and extension.
 - [Support and security limits](docs/ARCHIVES.md) · [Tests, measurements and real screenshots](docs/VALIDATION-1.3.md).
 
