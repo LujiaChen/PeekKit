@@ -54,3 +54,7 @@ For production signing, set PEEKKIT_SIGN_IDENTITY to a Developer ID Application 
 ## 1.3 stable source build
 
 The existing build command builds the app and both extensions. ArchiveReader preflights ZIP/TAR metadata and bounded raw GZip/BZip2 output; the existing folder extension additionally registers the concrete TGZ/TBZ2 types. No new service, paid credential or notarized binary is required. See [archive architecture](ARCHIVES.md) and [final validation](VALIDATION-1.3.md).
+
+## 1.3.1 source map
+
+FileBackedPDF pins local PDF descriptors; PDFContent owns the native viewer/navigation. SevenZipReader validates a narrow grammar and uses public system liblzma through Vendor/Lzma/LzmaBridge.h. Only public-domain API headers are bundled; no decoder binary. Existing offline build and ad-hoc signing require no paid credentials. Architecture: [PDF](PDF.md), [archives](ARCHIVES.md).

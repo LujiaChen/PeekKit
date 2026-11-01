@@ -16,7 +16,7 @@ enum ArchiveReader {
     static let maximumInput = 64 * 1024 * 1024
     static let maximumEntry = 32 * 1024 * 1024
     static let maximumDecoded = 128 * 1024 * 1024
-    static func recognizes(_ url: URL) -> Bool { ["zip","tar","tgz","gz","tbz","tbz2","bz2"].contains(url.pathExtension.lowercased()) }
+    static func recognizes(_ url: URL) -> Bool { ["zip","tar","tgz","gz","tbz","tbz2","bz2","7z"].contains(url.pathExtension.lowercased()) }
     static func failure(_ message: String) -> NSError { NSError(domain:"PeekKit.Archive",code:1,userInfo:[NSLocalizedDescriptionKey:message]) }
     static func safePath(_ path: String) throws -> String {
         guard !path.hasPrefix("/"), !path.contains("\\"), !path.contains(":"), !path.unicodeScalars.contains(where:{$0.value < 32}), path.utf8.count <= 4096 else { throw failure("Unsafe archive path") }
@@ -161,6 +161,7 @@ enum ArchiveReader {
             try Task<Never,Never>.checkCancellation()
             guard ProcessInfo.processInfo.systemUptime-started < 10 else { throw failure("Archive processing exceeded 10 seconds") }
         }
+        if source.starts(with: SevenZipReader.signature) { return try SevenZipReader.process(source, selected:selected, checkpoint:checkpoint) }
         let input = try unpack(source,checkpoint:checkpoint)
         if input.starts(with:[0x50,0x4b]) { try validateZip(input) } else { try validateTar(input,checkpoint:checkpoint) }
         return try input.withUnsafeBytes { raw in

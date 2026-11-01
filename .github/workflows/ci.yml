@@ -24,6 +24,8 @@ jobs:
         run: ./Tests/archive.sh
       - name: Browser lifecycle, tree and sorting tests
         run: ./Tests/browser.sh
+      - name: File-backed PDF and viewer regressions
+        run: ./Tests/pdf.sh
       - name: Build and verify app and extensions
         run: ./build.sh
       - name: Markdown security and export tests

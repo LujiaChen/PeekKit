@@ -8,10 +8,18 @@
 
 ![PeekKit 文件夹分析](docs/images/folder-analysis.jpg)
 
+## 1.3.1 — 大 PDF 与安全 7z 浏览
+
+- 本地 PDF 改用文件支持的 PDFKit 阅读器，按需显示页面，支持连续滚动、缩放、页码跳转与总页数；移除原来的 50 MB 图标回退，没有提高整文件内存读取上限。
+- 新增 7z Copy/LZMA1/LZMA2 浏览，支持有界固实块与压缩头；字典最多 8 MiB，拒绝加密、多编码器链、不安全路径及超限输入。
+- [PDF 实现](docs/PDF.md) · [格式与安全限制](docs/ARCHIVES.md) · [本次验证](docs/VALIDATION-1.3.1.md)。
+
+![Finder 中的 7z 目录树](docs/images/1.3.1/finder-7z-tree.png)
+
 ## 1.3.0 正式源码版
 
 - 新增 ZIP（存储/Deflate）、TAR、TGZ、TBZ2 树形和目录浏览、路径搜索，以及离线文本、图片、PDF 和有界 Markdown 预览。
-- 压缩流先在输出预算内展开，再预检 TAR/ZIP 头部；禁用 XZ、7z、RAR。协作式时间限制不等于硬 CPU/RSS 上限。
+- 压缩流先在输出预算内展开，再预检 TAR/ZIP 头部；1.3.0 禁用 XZ、7z、RAR；1.3.1 新增受限的 7z 子集。协作式时间限制不等于硬 CPU/RSS 上限。
 - 信息面板增加图片尺寸、PDF 页数、类型、权限和日期；列表可配置逻辑大小、分配块、创建/访问日期等列，使用后台缓存元数据。
 - [支持矩阵与安全边界](docs/ARCHIVES.md) · [测试、测量与真实截图](docs/VALIDATION-1.3.md)。
 

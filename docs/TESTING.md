@@ -62,3 +62,7 @@ Runner reference: [GitHub-hosted runners](https://docs.github.com/en/actions/ref
 ## 1.3 final release suites
 
 Run Tests/registration.sh, Tests/run.sh, Tests/archive.sh, Tests/browser.sh, build.sh, Tests/content.sh and Tools/test-renderer.sh from a clean checkout. Final local total: 158 passed, 0 failed. CI runs all six suites and both extension builds. [Final Finder matrix, measurements and limitations](VALIDATION-1.3.md).
+
+## 1.3.1 verification
+
+From a clean checkout run Tests/registration.sh, Tests/run.sh, Tests/archive.sh, Tests/pdf.sh, Tests/browser.sh, build.sh, Tests/content.sh and Tools/test-renderer.sh. PDF fixtures are synthetic; 7z uses Python stdlib plus checked-in official synthetic fixtures with provenance/hashes. No external CLI or Python packages are required. [Results and Finder boundaries](VALIDATION-1.3.1.md).

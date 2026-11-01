@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 — Large PDFs & safe 7z browsing (build 7)
+
+- File-backed, descriptor-pinned PDFKit previews replace the 50 MB Data gate. Continuous scroll, zoom, page count and Go/Previous/Next controls; explicit PDF errors and cleanup.
+- Independent bounded 7z header parser and raw system-liblzma bridge: Copy/LZMA1/LZMA2, solid substreams and compressed headers, 8 MiB dictionary cap, 16 MiB decoder-memory estimate budget.
+- Register concrete 7z type; add official synthetic 7-Zip and malicious fixtures, PDF viewer/resource tests and CI coverage.
+- Preserve ZIP/TAR and existing regression suites. Source-only stable release, ad-hoc signing, no new network permission/service.
+
+
 ## 1.3.0 — Archive Browsing & File Inspector
 
 - Fix concrete TGZ/TBZ2 Quick Look type registration; final Finder checks cover supported archives and filename aliases.

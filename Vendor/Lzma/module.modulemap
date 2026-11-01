@@ -1,0 +1,5 @@
+module CLzma [system] {
+ header "LzmaBridge.h"
+ link "lzma.5"
+ export *
+}
