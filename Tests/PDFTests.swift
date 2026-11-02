@@ -63,6 +63,42 @@ import Darwin
         viewer.go(toPage:Int.max); check("pageNavigationClamped",viewer.pdfView.currentPage.map{other.document.index(for:$0)} == 39)
         viewer.show(nil); source = nil
         check("dismantleClearsDocument",viewer.pdfView.document == nil)
+        // Keep lifetime probes synchronous: async frames and Objective-C getters
+        // can extend temporary references beyond an await in a CLI test host.
+        func deferredCancellation() throws -> Bool {
+            try autoreleasepool {
+                var lease: FileBackedPDF? = try FileBackedPDF.load(url)
+                weak var observed = lease
+                let controller = PDFViewerController(document:lease!.document,source:lease)
+                lease = nil
+                controller.show(nil)
+                let released = observed == nil && !controller.isViewLoaded
+                _ = controller.view
+                return released && controller.pdfView.document == nil
+            }
+        }
+        check("deferredCancellationReleasesPDFLease",try deferredCancellation())
+        var teardownLeases = true; var teardownControllers = true
+        for _ in 0..<20 {
+            weak var observedController: PDFViewerController?
+            try autoreleasepool {
+                var lease: FileBackedPDF? = try FileBackedPDF.load(url)
+                weak var observedLease = lease
+                let controller = PDFViewerController(document:lease!.document,source:lease)
+                observedController = controller; _ = controller.view; lease = nil
+                PDFContent.dismantleNSViewController(controller,coordinator:())
+                teardownLeases = teardownLeases && observedLease == nil && controller.pdfView.document == nil
+            }
+            teardownControllers = teardownControllers && observedController == nil
+        }
+        check("repeatedRepresentableTeardownReleasesLeases",teardownLeases)
+        check("repeatedRepresentableTeardownReleasesControllers",teardownControllers)
+        let identityController = PDFViewerController(document:other.document,source:other); _ = identityController.view
+        identityController.go(toPage:12); identityController.zoomIn()
+        let identityView = identityController.pdfView; let retainedScale = identityView.scaleFactor
+        for _ in 0..<100 { identityController.show(other.document,source:other) }
+        check("redundantPDFUpdatesPreserveViewAndZoom",identityController.pdfView === identityView && identityView.document === other.document && identityView.scaleFactor == retainedScale && identityView.currentPage.map{other.document.index(for:$0)} == 11)
+        identityController.show(nil)
         let bad = root.appendingPathComponent("corrupt.pdf"); try Data("not a PDF".utf8).write(to:bad)
         for (name,file) in [("corrupt",bad),("missing",root.appendingPathComponent("missing.pdf"))] {
             do { _ = try FileBackedPDF.load(file); check(name+"PDFError",false) } catch { check(name+"PDFError",true) }

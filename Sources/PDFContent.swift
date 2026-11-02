@@ -45,7 +45,9 @@ final class PDFViewerController: NSViewController {
         show(initialDocument, source: sourceLease); initialDocument = nil
     }
     func show(_ document: PDFDocument?, source: FileBackedPDF? = nil) {
-        guard isViewLoaded else { initialDocument = document; return }
+        // Cancellation can arrive before Quick Look asks for the native view.
+        // Update the descriptor lease as well as the deferred document.
+        guard isViewLoaded else { initialDocument = document; sourceLease = source; return }
         guard pdfView.document !== document else { return } // SwiftUI updates must not reset scroll/zoom.
         pdfView.document = document; sourceLease = source; pdfView.autoScales = true
         if let document, document.pageCount > 0 {
