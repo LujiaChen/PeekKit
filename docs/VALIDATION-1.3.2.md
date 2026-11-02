@@ -27,7 +27,7 @@ One concrete application lifecycle defect was independently reproduced: `show(ni
 - Finder intercepted number keys instead of delivering them to the old PDF text field. The native lazy page menu works in the real host, including page 100 and subsequent page navigation. It builds at most 101 items per level and preserves menu item identities during repeated accessibility queries. This is an accessible menu alternative, not text-entry support.
 - Native Markdown used a zero-sized text document frame. A viewport/layout-aware scroll view restores the body. Flattened HTML row groups and normalized native table cells produce continuous rows, complete dates and predictable CJK wrapping. Very wide tables scroll horizontally; columns use equal widths.
 - Real Finder checks of the original training document confirmed headings/body, table continuity, dates, Chinese wrapping and Preview/Source switching. The original directory name is correct, and hashes of all three files were unchanged during this investigation.
-- Dark appearance testing exposed frozen black HTML-import colors. Body runs now use semantic native label colors after import; explicit syntax/link colors remain intact. Light/dark regression checks were added. The user's original Auto appearance setting is restored after GUI testing.
+- Dark appearance testing exposed frozen black HTML-import colors. Body runs now use semantic native label colors after import; explicit syntax/link colors remain intact. Light/dark regression checks passed; the corrected original document was also verified visually in dark Finder Quick Look, including table borders and Preview/Source. The user's original Auto appearance setting was restored after GUI testing.
 
 ## Automated and integration coverage
 
@@ -35,7 +35,7 @@ Run from a clean source checkout: `Tests/registration.sh`, `Tests/run.sh`, `Test
 
 The final suite comprises **231 checks**: Registration 11, Analysis 28, Archive 79, PDF 25, Browser 40, Content 20, Renderer 28. No prior check was removed. New lifecycle checks include cancellation before view loading, 20 repeated representable teardowns releasing leases/controllers, and 100 identity-preserving updates. Security, archive limits, scanner cancellation, sorting, columns, inspector, Markdown sanitization and original PDF behavior remain covered.
 
-The main application and both extensions are built and strict deep ad-hoc signature verification is required. Finder testing and automated component tests are distinct: CI cannot establish actual Finder activation, full VoiceOver operation or real cloud-provider behavior. No notarization or Developer ID signing is claimed. Installation follows the tagged source-build workflow; one Folder and one Markdown extension must be registered from Applications.
+The main application and both extensions built from a clean checkout and passed strict deep ad-hoc signature verification. All 231 checks passed. Finder testing and automated component tests are distinct: CI cannot establish actual Finder activation, full VoiceOver operation or real cloud-provider behavior. No notarization or Developer ID signing is claimed. Installation follows the tagged source-build workflow; one Folder and one Markdown extension must be registered from Applications.
 
 ## Reproducing the investigation
 
@@ -48,3 +48,7 @@ The main application and both extensions are built and strict deep ad-hoc signat
 ## Remaining limits
 
 The original 5.39 GB event is unexplained and may depend on a different page sequence, zoom level or OS cache state. Native PDFKit recognition and decoding can temporarily consume multiple cores and substantial memory. Long-duration stress, all supported macOS versions, complete VoiceOver use and real cloud providers are not fully verified. No forced cache eviction, decoder replacement, network entitlement or system security bypass was introduced.
+
+## Final candidate Finder matrix
+
+The corrected clean-checkout build was installed temporarily with the previous stable copy retained. Real Finder checks passed: Grid/List/Tree; storage analysis; image preview and image dimensions in the inspector; Created-column toggle (restored afterward); archive-contained PDF and Markdown; direct Space previews of ZIP, TAR, TGZ, TBZ2 and restricted 7z; and direct Markdown with formatted CJK tables. Repeated preview closing/reopening exercised the real host. The original training directory and all three document hashes remained unchanged. No private source/screenshot was committed. Full VoiceOver operation and closing during a precisely timed native decoder call were not manually verified; automatic cancellation/stale-result coverage remains in the suite.
