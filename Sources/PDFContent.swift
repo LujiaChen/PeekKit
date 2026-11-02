@@ -12,7 +12,8 @@ struct PDFContent: NSViewControllerRepresentable {
 
 final class PDFViewerController: NSViewController {
     let pdfView = PDFView()
-    private let pageField = NSTextField(string: "1")
+    private let pagePicker = NSPopUpButton(frame:.zero,pullsDown:true)
+    private var menuSource: PDFPageMenu?
     private let countLabel = NSTextField(labelWithString: "")
     private var initialDocument: PDFDocument?
     private var sourceLease: FileBackedPDF?
@@ -24,15 +25,15 @@ final class PDFViewerController: NSViewController {
         pdfView.displayMode = .singlePageContinuous; pdfView.displayDirection = .vertical
         pdfView.autoScales = true; pdfView.minScaleFactor = 0.1; pdfView.maxScaleFactor = 8
         pdfView.setAccessibilityLabel("PDF pages")
-        pageField.alignment = .right; pageField.target = self; pageField.action = #selector(goToPage)
-        pageField.setAccessibilityLabel("PDF page number"); pageField.toolTip = "Enter a page number, then click Go"
-        pageField.widthAnchor.constraint(equalToConstant: 55).isActive = true
+        pagePicker.setAccessibilityLabel("Choose PDF page")
+        pagePicker.toolTip = "Choose a page from the menu. Finder may reserve keyboard input."
+        pagePicker.widthAnchor.constraint(greaterThanOrEqualToConstant:65).isActive = true
         countLabel.setAccessibilityLabel("PDF page count")
         func button(_ title: String, _ action: Selector, _ label: String) -> NSButton {
             let b = NSButton(title: title, target: self, action: action); b.bezelStyle = .rounded
             b.setAccessibilityLabel(label); b.toolTip = label; return b
         }
-        let toolbar = NSStackView(views: [button("‹", #selector(previous), "Previous PDF page"), pageField, countLabel, button("Go", #selector(goToPage), "Go to PDF page"),
+        let toolbar = NSStackView(views: [button("‹", #selector(previous), "Previous PDF page"), pagePicker, countLabel,
             button("›", #selector(next), "Next PDF page"), button("−", #selector(zoomOut), "Zoom out PDF"),
             button("+", #selector(zoomIn), "Zoom in PDF"), button("Fit", #selector(fit), "Fit PDF to window")])
         toolbar.spacing = 8; toolbar.orientation = .horizontal
@@ -44,17 +45,25 @@ final class PDFViewerController: NSViewController {
         show(initialDocument, source: sourceLease); initialDocument = nil
     }
     func show(_ document: PDFDocument?, source: FileBackedPDF? = nil) {
-        guard isViewLoaded else { initialDocument = document; return }
+        // Cancellation can arrive before Quick Look asks for the native view.
+        // Update the descriptor lease as well as the deferred document.
+        guard isViewLoaded else { initialDocument = document; sourceLease = source; return }
         guard pdfView.document !== document else { return } // SwiftUI updates must not reset scroll/zoom.
-        pdfView.document = document; sourceLease = source; pdfView.autoScales = true; updatePage()
+        pdfView.document = document; sourceLease = source; pdfView.autoScales = true
+        if let document, document.pageCount > 0 {
+            menuSource = PDFPageMenu(owner:self,range:1...document.pageCount,root:true)
+            let menu = NSMenu(); menu.delegate = menuSource; pagePicker.menu = menu; menu.update()
+        } else { pagePicker.menu = nil; menuSource = nil }
+        pagePicker.isEnabled = document != nil
+        updatePage()
     }
     private func updatePage() {
         let count = pdfView.document?.pageCount ?? 0
         countLabel.stringValue = "of \(count)"
-        if let page = pdfView.currentPage, let document = pdfView.document { pageField.integerValue = document.index(for: page) + 1 }
-        else { pageField.integerValue = 0 }
+        if let page = pdfView.currentPage, let document = pdfView.document { pagePicker.title = String(document.index(for: page) + 1) }
+        else { pagePicker.title = "—" }
     }
-    @objc func goToPage() { go(toPage: pageField.integerValue) }
+    @objc func choosePage(_ sender:NSMenuItem) { go(toPage:sender.tag) }
     func go(toPage number: Int) {
         guard let document = pdfView.document, let page = document.page(at: max(1, min(document.pageCount, number)) - 1) else { updatePage(); return }
         pdfView.go(to: page); updatePage()
@@ -65,4 +74,41 @@ final class PDFViewerController: NSViewController {
     @objc func zoomOut() { pdfView.autoScales = false; pdfView.zoomOut(nil) }
     @objc func fit() { pdfView.autoScales = true }
     deinit { for token in tokens { NotificationCenter.default.removeObserver(token) } }
+}
+
+/// Native menus remain usable when the Finder host reserves text-field keys.
+/// Lazily partition ranges so even huge documents never create more than 101
+/// menu items at one level; submenus are populated only when opened.
+final class PDFPageMenu: NSObject, NSMenuDelegate {
+    private weak var owner: PDFViewerController?
+    private let range: ClosedRange<Int>
+    private let root: Bool
+    init(owner:PDFViewerController,range:ClosedRange<Int>,root:Bool = false) { self.owner = owner; self.range = range; self.root = root }
+    func menuNeedsUpdate(_ menu:NSMenu) {
+        // Accessibility may query repeatedly while a menu is being tracked.
+        // Preserve item identities; rebuilding here invalidates active choices.
+        guard menu.items.isEmpty else { return }
+        guard let owner, owner.pdfView.document != nil else { return }
+        if root {
+            let page = owner.pdfView.currentPage.map { (owner.pdfView.document?.index(for:$0) ?? 0)+1 } ?? 1
+            menu.addItem(NSMenuItem(title:String(page),action:nil,keyEquivalent:""))
+        }
+        let count = range.upperBound-range.lowerBound+1
+        let step = max(1,count/100 + (count%100 == 0 ? 0:1))
+        var start = range.lowerBound
+        while start <= range.upperBound {
+            let end = start + min(step-1,range.upperBound-start)
+            if start == end {
+                let item = NSMenuItem(title:"Page \(start)",action:#selector(PDFViewerController.choosePage(_:)),keyEquivalent:"")
+                item.tag = start; item.target = owner; menu.addItem(item)
+            } else {
+                let item = NSMenuItem(title:"\(start)–\(end)",action:nil,keyEquivalent:"")
+                let submenu = NSMenu(title:item.title)
+                let delegate = PDFPageMenu(owner:owner,range:start...end)
+                item.representedObject = delegate // NSMenu.delegate is weak.
+                submenu.delegate = delegate; item.submenu = submenu; menu.addItem(item)
+            }
+            if end == range.upperBound { break }; start = end+1
+        }
+    }
 }

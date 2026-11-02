@@ -66,3 +66,7 @@ Run Tests/registration.sh, Tests/run.sh, Tests/archive.sh, Tests/browser.sh, bui
 ## 1.3.1 verification
 
 From a clean checkout run Tests/registration.sh, Tests/run.sh, Tests/archive.sh, Tests/pdf.sh, Tests/browser.sh, build.sh, Tests/content.sh and Tools/test-renderer.sh. PDF fixtures are synthetic; 7z uses Python stdlib plus checked-in official synthetic fixtures with provenance/hashes. No external CLI or Python packages are required. [Results and Finder boundaries](VALIDATION-1.3.1.md).
+
+## 1.3.2 stability checks
+
+Run the same complete source-build suite as 1.3.1. New checks cover CJK table/viewport geometry, light/dark semantic text colors, lazy page menus, cancellation before view creation, 20 repeated representable teardowns and 100 redundant PDF updates preserving view/document identity and zoom. The final suite has 231 checks (PDF 25, Browser 40; all prior checks retained). See [profiling, Finder results and limits](VALIDATION-1.3.2.md).

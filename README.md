@@ -8,6 +8,13 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
+## 1.3.2 — Markdown & PDF stability
+
+- Fix folder Markdown layout, continuous table borders, CJK wrapping and light/dark body text.
+- Navigate PDFs using a native page menu that works inside Finder; keep file-backed continuous scrolling and zoom.
+- Fix descriptor retention when a PDF preview is cancelled before its view loads; add lifecycle regressions.
+- Large image-heavy PDFs can still temporarily use substantial memory/CPU in PDFKit. Three measured sessions recovered after leaving the PDF; this is not a hard resource guarantee. [Profiling and validation](docs/VALIDATION-1.3.2.md).
+
 ## 1.3.1 — Large PDFs & safe 7z browsing
 
 - File-backed PDFKit reader with continuous scrolling, zoom, page navigation/counts and explicit errors. Removes the old 50 MB icon fallback without increasing a Data limit.

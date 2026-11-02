@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.2 — Markdown & PDF stability (build 8)
+
+- Restore folder Markdown viewport sizing, continuous table borders, complete CJK dates and predictable column wrapping. Preserve Preview/Source switching.
+- Keep native Markdown body text readable in light and dark appearances without freezing a process-global CSS color; preserve syntax/link colors.
+- Replace Finder's unusable PDF page text input with a bounded lazy native page menu. Preserve continuous file-backed PDF scrolling and zoom.
+- Release the pinned PDF descriptor when cancellation arrives before the native view loads. Add repeated teardown and redundant-update regressions.
+- Profile the original image-heavy PDF: three finite Finder sessions recovered to about 52–55 MB physical footprint, with idle CPU near zero. Native image decoding and page-triggered text recognition were observed; the reported 5.39 GB event was not reproduced. No hard PDFKit resource cap or speedup is claimed. [Validation](docs/VALIDATION-1.3.2.md).
+
 ## 1.3.1 — Large PDFs & safe 7z browsing (build 7)
 
 - File-backed, descriptor-pinned PDFKit previews replace the 50 MB Data gate. Continuous scroll, zoom, page count and Go/Previous/Next controls; explicit PDF errors and cleanup.

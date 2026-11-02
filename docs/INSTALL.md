@@ -35,3 +35,7 @@ The existing PeekKit Folder extension also declares ZIP, TAR, gzip and bzip2 typ
 ## 1.3.1 upgrade
 
 Build the tagged source with build.sh. Keep a temporary recoverable old app until folder, direct Markdown, archives and PDF previews work. Replace the Applications bundle, open it once and close/reopen Quick Look. Both registered extensions must show 1.3.1 build 7 from the single Applications app. Folder now declares org.7-zip.7-zip-archive. Remove the temporary old copy after verification; do not disable macOS security protections.
+
+## 1.3.2 upgrade
+
+Download the v1.3.2 source ZIP and SHA256SUMS.txt from the GitHub Release, verify with `shasum -a 256 -c SHA256SUMS.txt`, then build locally with `./build.sh`. Replace Applications/PeekKit.app only after retaining a temporary recoverable copy. Open the app once, close/reopen Quick Look, and verify that both installed extensions show 1.3.2 build 8. Retest a folder, Markdown, an archive and a PDF before removing the temporary copy. This is an ad-hoc-signed local source build, not a notarized binary distribution.
