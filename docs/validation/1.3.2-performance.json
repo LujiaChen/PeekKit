@@ -1,0 +1,276 @@
+{
+  "environment": {
+    "chip": "Apple M5",
+    "memoryGiB": 16,
+    "macOS": "27.2 (26B123)",
+    "Instruments": "27.0"
+  },
+  "input": {
+    "bytes": 86264556,
+    "pages": 712,
+    "privateContentIncluded": false
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "sampledPeakRSSKiB": 1199536,
+      "sampledPeakPsCPUPercent": 241.1
+    },
+    {
+      "cycle": 2,
+      "sampledPeakRSSKiB": 1200128,
+      "sampledPeakPsCPUPercent": 240.6
+    },
+    {
+      "cycle": 3,
+      "sampledPeakRSSKiB": 1302176,
+      "sampledPeakPsCPUPercent": 214.5
+    }
+  ],
+  "recoveredPhysicalFootprintReported": [
+    "52.1M",
+    "53.7M",
+    "54.6M"
+  ],
+  "closedPhysicalFootprintReported": "50.0M",
+  "peakPhysicalFootprintReported": "1.5G",
+  "leaksAfterCycles1And3": {
+    "blocks": 2,
+    "bytes": 384,
+    "attribution": "CFData; no allocation-stack attribution, unchanged count"
+  },
+  "cpuProfile": {
+    "targetSamples": 18637,
+    "topLeafSymbols": [
+      [
+        "perform_synthesis_lifting_step(kd_lifting_step*, bounded::v1::bounded_ptr<bounded::v1::bounded_ptr<kdu_sample16>>, bounded::v1::bounded_ptr<kdu_sample16>, bounded::v1::bounded_ptr<kdu_sample16>, int, int)",
+        1320
+      ],
+      [
+        "<deduplicated_symbol>",
+        1218
+      ],
+      [
+        "kd_synthesis::horizontal_synthesis(kd_vlift_line*, int)",
+        1120
+      ],
+      [
+        "_xzm_free_main",
+        1051
+      ],
+      [
+        "_xzm_xzone_malloc_tiny",
+        1050
+      ],
+      [
+        "DyldSharedCache::forEachImageTextSegment(void (unsigned long long, unsigned long long, unsigned char const*, char const*, bool&) block_pointer) const",
+        780
+      ],
+      [
+        "JArithmeticDecoder::decodeBit(unsigned int, JArithmeticDecoderStats*)",
+        715
+      ],
+      [
+        "invocation function for block in dyld4::APIs::findImageMappedAt(void const*, mach_o::UnsafeHeader const**, bool*, char const**, void const**, unsigned long long*, unsigned char*, dyld4::Loader const**)",
+        651
+      ],
+      [
+        "transfer_fixed_point(kdu_line_buf*, int, int, bounded::v1::bounded_ptr<unsigned char>, int, bool)",
+        465
+      ],
+      [
+        "kd_synthesis::pull(kdu_line_buf&)",
+        459
+      ],
+      [
+        "mach_o::Header::SegmentInfo mach_o::Header::parse_segment_command<true>(mach_o::Header::LoadCommandInfo const&, unsigned short, void (mach_o::Header::SegmentInfo const&, mach_o::Header::SectionInfo const&) block_pointer, mach_o::Error*) const",
+        398
+      ],
+      [
+        "_platform_memmove",
+        370
+      ],
+      [
+        "_platform_memset",
+        296
+      ],
+      [
+        "JBIG2Stream::readGenericBitmap(int, int, int, int, int, int, JBIG2Bitmap*, int*, int*, int)",
+        258
+      ],
+      [
+        "kdu_convert_ycc_to_rgb(kdu_line_buf&, kdu_line_buf&, kdu_line_buf&, int)",
+        246
+      ],
+      [
+        "_free",
+        229
+      ],
+      [
+        "malloc_type_malloc",
+        179
+      ],
+      [
+        "mq_decoder::mq_decode(int&, mqd_state&)",
+        170
+      ],
+      [
+        "void resample_horizontal<unsigned char, int, 4, false>(resample_filter const*, unsigned int, unsigned int, int, void**, void const* const*, int*, int, void const* const*)",
+        143
+      ],
+      [
+        "vLookupTable_Planar8toPlanar16",
+        130
+      ]
+    ],
+    "topLeafBinaries": [
+      [
+        "libJP2.dylib",
+        4046
+      ],
+      [
+        "libsystem_malloc.dylib",
+        3004
+      ],
+      [
+        "ANECompiler",
+        2723
+      ],
+      [
+        "dyld",
+        2368
+      ],
+      [
+        "CoreGraphics",
+        1553
+      ],
+      [
+        "vImage",
+        893
+      ],
+      [
+        "libsystem_platform.dylib",
+        823
+      ],
+      [
+        "MIL",
+        809
+      ],
+      [
+        "unknown",
+        560
+      ],
+      [
+        "libsystem_kernel.dylib",
+        383
+      ],
+      [
+        "CoreFoundation",
+        352
+      ],
+      [
+        "libc++abi.dylib",
+        227
+      ],
+      [
+        "libobjc.A.dylib",
+        141
+      ],
+      [
+        "libc++.1.dylib",
+        130
+      ],
+      [
+        "libunwind.dylib",
+        95
+      ]
+    ],
+    "inclusiveBinaries": [
+      [
+        "TextRecognition",
+        10592
+      ],
+      [
+        "Espresso",
+        10586
+      ],
+      [
+        "libswift_Concurrency.dylib",
+        9434
+      ],
+      [
+        "AppleNeuralEngine",
+        9372
+      ],
+      [
+        "ANECompiler",
+        9371
+      ],
+      [
+        "libsystem_pthread.dylib",
+        8208
+      ],
+      [
+        "libdispatch.dylib",
+        8202
+      ],
+      [
+        "PDFKit",
+        6677
+      ],
+      [
+        "CoreGraphics",
+        6626
+      ],
+      [
+        "ImageIO",
+        4433
+      ],
+      [
+        "libJP2.dylib",
+        4189
+      ],
+      [
+        "dyld",
+        3369
+      ],
+      [
+        "libc++abi.dylib",
+        3250
+      ],
+      [
+        "libsystem_malloc.dylib",
+        3102
+      ],
+      [
+        "libunwind.dylib",
+        2491
+      ],
+      [
+        "MIL",
+        1781
+      ],
+      [
+        "unknown",
+        1242
+      ],
+      [
+        "CoreFoundation",
+        1169
+      ],
+      [
+        "Foundation",
+        1024
+      ],
+      [
+        "AppKit",
+        1009
+      ]
+    ]
+  },
+  "limits": [
+    "Three finite interactive cycles, not a hard RAM/CPU guarantee",
+    "RSS differs from physical footprint; per-cycle timing and accessibility overhead vary",
+    "No performance optimization or speedup claim"
+  ]
+}

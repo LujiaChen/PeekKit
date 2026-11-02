@@ -58,3 +58,7 @@ The existing build command builds the app and both extensions. ArchiveReader pre
 ## 1.3.1 source map
 
 FileBackedPDF pins local PDF descriptors; PDFContent owns the native viewer/navigation. SevenZipReader validates a narrow grammar and uses public system liblzma through Vendor/Lzma/LzmaBridge.h. Only public-domain API headers are bundled; no decoder binary. Existing offline build and ad-hoc signing require no paid credentials. Architecture: [PDF](PDF.md), [archives](ARCHIVES.md).
+
+## 1.3.2 lifecycle and native Markdown
+
+PDFContent preserves its PDFView/document identity across unrelated SwiftUI updates. `show(nil)` also clears a deferred descriptor lease before view loading. Native Markdown uses a viewport-sized NSTextView and normalized AppKit table cells; semantic body colors are restored after HTML import so the hosted view controls light/dark text colors. The offline sanitization, input caps and CSP remain unchanged. See [1.3.2 validation](VALIDATION-1.3.2.md).
