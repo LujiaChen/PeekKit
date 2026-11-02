@@ -11,10 +11,31 @@ import Darwin
         try Data("# Heading".utf8).write(to: base.appendingPathComponent("readme.md"))
         try Data([0xff,0xfe]).write(to: base.appendingPathComponent("bad.txt"))
         let alias = base.appendingPathComponent("alias"); try fm.createSymbolicLink(at: alias, withDestinationURL: base.appendingPathComponent("sub"))
+        let body = "<h1>中文标题 Layout</h1><p>Mixed 中文 paragraph</p><ul><li>列表 item</li></ul><table><thead><tr><th>阶段</th><th>说明</th></tr></thead><tbody>" + String(repeating:"<tr><td>第一周</td><td>中文 long table content</td></tr>", count:60) + "</tbody></table><p>END 最后段落</p>"
+        let attributed = try nativeMarkdownBody(body)
+        let scroll = MarkdownScrollView(frame:NSRect(x:0,y:0,width:700,height:400))
+        let textView = NSTextView(frame:.zero)
+        textView.isVerticallyResizable = true; textView.isHorizontallyResizable = false
+        textView.textContainerInset = NSSize(width:24,height:20)
+        textView.textContainer?.widthTracksTextView = true
+        scroll.documentView = textView; textView.textStorage?.setAttributedString(attributed)
+        scroll.layout()
+        let layoutWide = textView.frame.width > 600 && textView.frame.height > 400
+        scroll.setFrameSize(NSSize(width:380,height:400)); scroll.layout()
+        let layoutNarrow = textView.frame.width <= 380 && textView.frame.width > 300 && textView.frame.height > 400
         let suite = "PeekKit.Tests." + UUID().uuidString; let prefs = UserDefaults(suiteName: suite)!
         defer { prefs.removePersistentDomain(forName: suite) }
         var checks: [String: Bool] = [:]
         func check(_ name: String, _ value: Bool) { checks[name] = value; print("\(value ? "PASS" : "FAIL") \(name)") }
+        check("markdownCJKTableTextPreserved",attributed.string.contains("中文标题") && attributed.string.contains("END 最后段落"))
+        check("markdownViewportAndLongDocumentLayout",layoutWide && layoutNarrow)
+        var tablesNormalized = true; var cells = 0; var tableIdentities = Set<ObjectIdentifier>()
+        attributed.enumerateAttribute(.paragraphStyle,in:NSRange(location:0,length:attributed.length)) { value,_,_ in
+            if let style = value as? NSParagraphStyle { for case let cell as NSTextTableBlock in style.textBlocks {
+                tableIdentities.insert(ObjectIdentifier(cell.table)); cells += 1; tablesNormalized = tablesNormalized && style.paragraphSpacing == 0 && style.paragraphSpacingBefore == 0 && cell.table.collapsesBorders && cell.value(for:.minimumWidth) >= 96
+            } }
+        }
+        check("markdownTableCellsHaveContinuousBordersAndSpacing",cells >= 120 && tablesNormalized && tableIdentities.count == 1)
         func settle(_ condition: @MainActor () -> Bool) async throws { for _ in 0..<500 { if condition() { return }; try await Task.sleep(nanoseconds: 10_000_000) } }
         let model = FolderModel(root: base, preferences: prefs); model.load()
         try await settle { !model.loading && model.visible.count == 4 }
