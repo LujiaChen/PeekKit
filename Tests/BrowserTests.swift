@@ -29,6 +29,24 @@ import Darwin
         func check(_ name: String, _ value: Bool) { checks[name] = value; print("\(value ? "PASS" : "FAIL") \(name)") }
         check("markdownCJKTableTextPreserved",attributed.string.contains("中文标题") && attributed.string.contains("END 最后段落"))
         check("markdownViewportAndLongDocumentLayout",layoutWide && layoutNarrow)
+        func readableBody(_ appearance:NSAppearance.Name, light:Bool) -> Bool {
+            var readable = true
+            NSAppearance(named:appearance)!.performAsCurrentDrawingAppearance {
+                for word in ["中文标题","Mixed","第一周","END"] {
+                    let range = (attributed.string as NSString).range(of:word)
+                    guard range.location != NSNotFound,
+                          let color = attributed.attribute(.foregroundColor,at:range.location,effectiveRange:nil) as? NSColor,
+                          let rgb = color.usingColorSpace(.deviceRGB) else { readable = false; continue }
+                    let level = (rgb.redComponent+rgb.greenComponent+rgb.blueComponent)/3
+                    readable = readable && (light ? level < 0.3 : level > 0.7)
+                }
+            }
+            return readable
+        }
+        check("nativeMarkdownSemanticColorInLightAndDark",readableBody(.aqua,light:true) && readableBody(.darkAqua,light:false))
+        let highlighted = try nativeMarkdownBody("<p>Body</p><pre><span class='tok-keyword'>let</span></pre>")
+        let keywordRange = (highlighted.string as NSString).range(of:"let")
+        check("nativeMarkdownPreservesSyntaxColors",keywordRange.location != NSNotFound && (highlighted.attribute(.foregroundColor,at:keywordRange.location,effectiveRange:nil) as? NSColor) != NSColor.labelColor)
         var tablesNormalized = true; var cells = 0; var tableIdentities = Set<ObjectIdentifier>()
         attributed.enumerateAttribute(.paragraphStyle,in:NSRange(location:0,length:attributed.length)) { value,_,_ in
             if let style = value as? NSParagraphStyle { for case let cell as NSTextTableBlock in style.textBlocks {

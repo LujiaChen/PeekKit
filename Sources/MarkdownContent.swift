@@ -63,8 +63,17 @@ func nativeMarkdownBody(_ original: String) throws -> NSAttributedString {
     // AppKit imports row-group tags as separate blocks, introducing gaps
     // between table headers and body. Keep rows in a single native table.
     body = body.replacingOccurrences(of:"</?(thead|tbody|tfoot)(?:\\s[^>]*)?>",with:"",options:.regularExpression)
-    let htmlDocument = "<html><head><meta charset='utf-8'><style>body{font:15px -apple-system;color:\(NSColor.labelColor.usingColorSpace(.deviceRGB)!.htmlColor);line-height:1.5}pre,code{font-family:Menlo;font-size:13px}table{border-collapse:collapse}td,th{border:1px solid #b0b0b0;padding:8px}a{color:#2876d7}.tok-keyword{color:#9955bb}.tok-string{color:#328649}.tok-comment{color:#888888}.tok-number{color:#b27822}</style></head><body>\(body)</body></html>"
+    let htmlDocument = "<html><head><meta charset='utf-8'><style>body{font:15px -apple-system;color:#000000;line-height:1.5}pre,code{font-family:Menlo;font-size:13px}table{border-collapse:collapse}td,th{border:1px solid #b0b0b0;padding:8px}a{color:#2876d7}.tok-keyword{color:#9955bb}.tok-string{color:#328649}.tok-comment{color:#888888}.tok-number{color:#b27822}</style></head><body>\(body)</body></html>"
     let result = NSMutableAttributedString(attributedString:try NSAttributedString(data:Data(htmlDocument.utf8),options:[.documentType:NSAttributedString.DocumentType.html,.characterEncoding:String.Encoding.utf8.rawValue],documentAttributes:nil))
+    // HTML import freezes CSS colors using the process's current appearance,
+    // which can differ from the hosted view's appearance. Restore semantic body
+    // color after import; keep explicit link/syntax colors intact.
+    result.enumerateAttribute(.foregroundColor,in:NSRange(location:0,length:result.length)) { value,range,_ in
+        let rgb = (value as? NSColor)?.usingColorSpace(.deviceRGB)
+        if rgb == nil || (rgb!.redComponent < 0.01 && rgb!.greenComponent < 0.01 && rgb!.blueComponent < 0.01) {
+            result.addAttribute(.foregroundColor,value:NSColor.labelColor,range:range)
+        }
+    }
     // The HTML importer leaves per-cell paragraph margins and incomplete borders.
     // Normalize the native table model rather than relying on unsupported CSS.
     result.enumerateAttribute(.paragraphStyle,in:NSRange(location:0,length:result.length)) { value,range,_ in
@@ -86,9 +95,6 @@ func nativeMarkdownBody(_ original: String) throws -> NSAttributedString {
         result.addAttribute(.paragraphStyle,value:copy,range:range)
     }
     return result
-}
-extension NSColor {
-    var htmlColor: String { String(format:"#%02x%02x%02x",Int(redComponent*255),Int(greenComponent*255),Int(blueComponent*255)) }
 }
 struct NativeMarkdownText: NSViewRepresentable {
     let content: NSAttributedString
