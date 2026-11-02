@@ -8,7 +8,7 @@ root,report=map(pathlib.Path,sys.argv[1:]);read=lambda p:plistlib.loads((root/p)
 folder=read('Resources/Folder-Info.plist');attrs=folder['NSExtension']['NSExtensionAttributes'];types=attrs['QLSupportedContentTypes']
 required=['public.folder','org.7-zip.7-zip-archive','public.zip-archive','public.tar-archive','org.gnu.gnu-zip-archive','org.gnu.gnu-zip-tar-archive','public.bzip2-archive','public.tar-bzip2-archive']
 checks={'declares_'+t:t in types for t in required}
-checks['consistentReleaseVersions']=all(read('Resources/'+n+'-Info.plist')['CFBundleShortVersionString']=='1.3.1' and read('Resources/'+n+'-Info.plist')['CFBundleVersion']=='7' for n in ['App','Folder','Markdown'])
+checks['consistentReleaseVersions']=all(read('Resources/'+n+'-Info.plist')['CFBundleShortVersionString']=='1.3.2' and read('Resources/'+n+'-Info.plist')['CFBundleVersion']=='8' for n in ['App','Folder','Markdown'])
 checks['nativeQuickLookController']=folder['NSExtension']['NSExtensionPointIdentifier']=='com.apple.quicklook.preview' and folder['NSExtension']['NSExtensionPrincipalClass']=='PeekKitFolderPreviewController' and attrs['QLIsDataBasedPreview'] is False
 entitlements=read('Resources/Extension.entitlements');checks['sandboxWithoutNetwork']=entitlements.get('com.apple.security.app-sandbox') is True and entitlements.get('com.apple.security.network.client') is not True
 for name,ok in checks.items():print(('PASS' if ok else 'FAIL'),name)

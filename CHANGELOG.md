@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — 1.3.2 candidate (build 8)
+
+- Fix folder-contained native Markdown viewport sizing and continuous table layout, including CJK cell wrapping and row-group import.
+- Replace Finder-hosted PDF page text input with a bounded, lazy native page menu; keep continuous scrolling and file-backed PDF rendering.
+- Release is blocked on PK-001: large-PDF memory/CPU behavior is not yet resolved. This is not a published stable version. See [candidate validation](docs/VALIDATION-1.3.2.md).
+
 ## 1.3.1 — Large PDFs & safe 7z browsing (build 7)
 
 - File-backed, descriptor-pinned PDFKit previews replace the 50 MB Data gate. Continuous scroll, zoom, page count and Go/Previous/Next controls; explicit PDF errors and cleanup.
