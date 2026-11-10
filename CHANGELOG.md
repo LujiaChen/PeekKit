@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Release automation and installation
+## 1.3.3 — Pre-built downloads and installation (build 9)
 
 - Add tag-triggered, regression-gated ARM ZIP/DMG/source packaging and SHA-256 manifests; manual/PR runs do not publish. Preserve existing release metadata and refuse asset overwrites.
 - Add a credential-free installation helper: validate first, scoped opt-in quarantine removal, optional inside-out ad-hoc signing with entitlements preserved, extension registration and Quick Look cache refresh.
