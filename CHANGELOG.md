@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Release automation and installation
+
+- Add tag-triggered, regression-gated ARM ZIP/DMG/source packaging and SHA-256 manifests; manual/PR runs do not publish. Preserve existing release metadata and refuse asset overwrites.
+- Add a credential-free installation helper: validate first, scoped opt-in quarantine removal, optional inside-out ad-hoc signing with entitlements preserved, extension registration and Quick Look cache refresh.
+- Add isolated distribution regressions and English/Chinese installation guidance; clearly distinguish ad-hoc signing from Developer ID/notarization.
+
 ## 1.3.2 — Markdown & PDF stability (build 8)
 
 - Restore folder Markdown viewport sizing, continuous table borders, complete CJK dates and predictable column wrapping. Preserve Preview/Source switching.
