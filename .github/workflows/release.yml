@@ -74,6 +74,7 @@ jobs:
     needs: package
     if: github.event_name == 'push' && github.ref_type == 'tag'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -93,6 +94,7 @@ jobs:
           sha256sum -c SHA256SUMS.txt
           # Preserve an existing release's notes/status. Never overwrite existing assets.
           gh api "repos/$GH_REPO/releases?per_page=100" > /tmp/peekkit-releases.json
+          created=false
           if ! jq -e --arg tag "$TAG" 'any(.[]; .tag_name == $tag)' /tmp/peekkit-releases.json >/dev/null; then
             cat > /tmp/peekkit-release-notes.md <<'NOTES'
           Apple Silicon / macOS 14+. The ZIP and DMG contain an **ad-hoc-signed**
@@ -103,6 +105,9 @@ jobs:
           require enabling in System Settings. See docs/INSTALL.md in the source
           archive for commands, source builds, security limits and troubleshooting.
           NOTES
-            gh release create "$TAG" --verify-tag --title "PeekKit ${TAG#v}" --generate-notes --notes-file /tmp/peekkit-release-notes.md
+            gh release create "$TAG" --verify-tag --draft --title "PeekKit ${TAG#v}" --generate-notes --notes-file /tmp/peekkit-release-notes.md
+            created=true
           fi
           gh release upload "$TAG" ./*.zip ./*.dmg ./SHA256SUMS.txt
+          # Keep a failed first upload out of public stable releases.
+          if [[ "$created" == true ]]; then gh release edit "$TAG" --draft=false; fi

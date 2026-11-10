@@ -75,8 +75,11 @@ for KIND in Folder Markdown; do
 done
 /usr/bin/qlmanage -r
 /usr/bin/qlmanage -r cache
-for ID in com.lukechen.peekkit.folder com.lukechen.peekkit.markdown; do
-  /usr/bin/pluginkit -m -A -D -v -i "$ID"
+for KIND in Folder Markdown; do
+  LOWER="$(echo "$KIND" | /usr/bin/tr '[:upper:]' '[:lower:]')"
+  REGISTRATION="$(/usr/bin/pluginkit -m -A -D -v -i "com.lukechen.peekkit.$LOWER")"
+  printf '%s\n' "$REGISTRATION"
+  [[ "$REGISTRATION" == *"$APP/Contents/PlugIns/PeekKit${KIND}Preview.appex"* ]] || fail "macOS did not report the installed $KIND extension. Open PeekKit and check Quick Look settings."
 done
 info 'Preparation and registration commands completed. Close/reopen Finder Quick Look.'
 warn 'Registration is not proof of activation. Keep one installed copy; remove old copies if the paths above include duplicates.'

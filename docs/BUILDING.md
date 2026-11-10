@@ -91,8 +91,9 @@ Finder integration. SHA-pinned actions and read-only checkout credentials are us
 only the separate publication job has contents-write permission.
 
 An existing Release retains its notes/draft/prerelease status; assets are uploaded
-without clobbering. For a new tag, a stable Release is created with generated notes
-and an explicit ad-hoc/notarization notice. Re-running against an already uploaded
+without clobbering. For a new tag, a draft with generated notes and an explicit
+ad-hoc/notarization notice is published as stable only after all uploads succeed.
+Re-running against an already uploaded
 asset fails rather than overwriting it. Existing tags/releases are not modified by
 merging the workflow. GitHub repository Actions/write-token policy can prevent
 publication; the packaging job's downloadable artifacts remain available.
