@@ -8,8 +8,8 @@ does not establish publisher identity or guarantee Gatekeeper/Quick Look approva
 ## Option A — Pre-built ZIP or DMG
 
 Use this path when a [GitHub Release](https://github.com/LujiaChen/PeekKit/releases)
-contains `PeekKit-<version>-arm64-adhoc.zip` or `.dmg`. Tag builds after the release
-workflow is merged produce these assets automatically. Older releases, including
+contains `PeekKit-<version>-arm64-adhoc.zip` or `.dmg`. Version 1.3.3 and later provide these assets through the automated release
+workflow. Older releases, including
 the original 1.3.2 source release, may contain only source; use Option B for those.
 Xcode is not required for this path; the helper uses tools included with macOS.
 
@@ -98,7 +98,7 @@ Install/select Xcode and its macOS SDK, then:
 git clone https://github.com/LujiaChen/PeekKit.git
 cd PeekKit
 # For a reproducible release, check out its published tag before building.
-git checkout v1.3.2
+git checkout v1.3.3
 ./build.sh
 ```
 

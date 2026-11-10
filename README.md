@@ -8,6 +8,14 @@ Browse folders, understand what takes up space, and read Markdown without leavin
 
 ![PeekKit recursive folder analysis](docs/images/folder-analysis.jpg)
 
+## 1.3.3 — Pre-built downloads
+
+Download an Apple Silicon ZIP or DMG from [v1.3.3](https://github.com/LujiaChen/PeekKit/releases/tag/v1.3.3).
+No Xcode needed for the pre-built app. Verify its checksum, copy PeekKit.app to
+Applications and run the included installation helper; [steps and trust limitations](docs/INSTALL.md).
+The app is ad-hoc signed, not Apple notarized. This is a packaging update preserving
+1.3.2's application features and fixes.
+
 ## 1.3.2 — Markdown & PDF stability
 
 - Fix folder Markdown layout, continuous table borders, CJK wrapping and light/dark body text.

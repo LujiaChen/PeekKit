@@ -8,6 +8,12 @@
 
 ![PeekKit 文件夹分析](docs/images/folder-analysis.jpg)
 
+## 1.3.3 — 可直接下载应用安装包
+
+在 [v1.3.3 Release](https://github.com/LujiaChen/PeekKit/releases/tag/v1.3.3) 下载 Apple Silicon ZIP 或 DMG，
+无需 Xcode。核对校验值、拖入“应用程序”后运行随包附带的安装工具，详见[安装步骤与信任说明](docs/INSTALL.md)。
+应用使用临时签名，未经 Apple 公证。本次更新打包及安装流程，保留 1.3.2 的应用功能和修复。
+
 ## 1.3.2 — Markdown 与 PDF 稳定性修复
 
 - 修复文件夹 Markdown 排版、连续表格边框、中文换行，以及亮暗外观的正文颜色。
