@@ -1,0 +1,108 @@
+name: Package and release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  pull_request:
+    paths:
+      - '.github/workflows/release.yml'
+      - 'build.sh'
+      - 'install-app.sh'
+      - 'Tools/*app*.sh'
+      - 'Tools/package-adhoc.sh'
+      - 'Tests/distribution*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: package-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    # Current standard Apple Silicon runner, matching ci.yml; binary targets macOS 14+.
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify architecture, SDK and tag version
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          test "$(uname -m)" = arm64
+          xcode-select -p
+          xcodebuild -version
+          xcrun --sdk macosx --show-sdk-path
+          if [[ "$REF_TYPE" == tag ]]; then
+            [[ "$REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            for bundle in App Folder Markdown; do
+              version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "Resources/$bundle-Info.plist")
+              test "$REF_NAME" = "v$version"
+            done
+          fi
+      - name: Run regressions
+        run: |
+          ./Tests/registration.sh
+          ./Tests/run.sh
+          ./Tests/archive.sh
+          ./Tests/browser.sh
+          ./Tests/pdf.sh
+      - name: Build main application and extensions with ad-hoc signing
+        env:
+          PEEKKIT_SIGN_IDENTITY: '-'
+        run: ./build.sh
+      - name: Content, renderer and distribution security checks
+        run: |
+          ./Tests/content.sh
+          ./Tools/test-renderer.sh
+          ./Tests/distribution.sh .build/PeekKit.app
+      - name: Package ZIP, DMG, source and checksums
+        run: ./Tools/package-adhoc.sh .build/PeekKit.app .build/release
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-assets
+          path: .build/release/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: package
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: release-assets
+          path: release-assets
+      - name: Verify checksums and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-assets
+          sha256sum -c SHA256SUMS.txt
+          # Preserve an existing release's notes/status. Never overwrite existing assets.
+          gh api "repos/$GH_REPO/releases?per_page=100" > /tmp/peekkit-releases.json
+          if ! jq -e --arg tag "$TAG" 'any(.[]; .tag_name == $tag)' /tmp/peekkit-releases.json >/dev/null; then
+            cat > /tmp/peekkit-release-notes.md <<'NOTES'
+          Apple Silicon / macOS 14+. The ZIP and DMG contain an **ad-hoc-signed**
+          app, not a Developer ID–signed or Apple-notarized distribution. Download
+          SHA256SUMS.txt and verify the chosen asset before use. Copy PeekKit.app
+          to Applications; the included install-app.sh prepares this app only.
+          Quarantine removal requires an explicit flag. Quick Look extensions may
+          require enabling in System Settings. See docs/INSTALL.md in the source
+          archive for commands, source builds, security limits and troubleshooting.
+          NOTES
+            gh release create "$TAG" --verify-tag --title "PeekKit ${TAG#v}" --generate-notes --notes-file /tmp/peekkit-release-notes.md
+          fi
+          gh release upload "$TAG" ./*.zip ./*.dmg ./SHA256SUMS.txt
