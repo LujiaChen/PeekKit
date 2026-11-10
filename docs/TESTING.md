@@ -70,3 +70,21 @@ From a clean checkout run Tests/registration.sh, Tests/run.sh, Tests/archive.sh,
 ## 1.3.2 stability checks
 
 Run the same complete source-build suite as 1.3.1. New checks cover CJK table/viewport geometry, light/dark semantic text colors, lazy page menus, cancellation before view creation, 20 repeated representable teardowns and 100 redundant PDF updates preserving view/document identity and zoom. The final suite has 231 checks (PDF 25, Browser 40; all prior checks retained). See [profiling, Finder results and limits](VALIDATION-1.3.2.md).
+
+## Distribution and installation helper
+
+After a build, run `./Tests/distribution.sh .build/PeekKit.app`. The 19 checks use
+real macOS codesign/xattr tools on temporary copies only, including paths with
+spaces, no-op validation, explicit quarantine consent, recursive scoped removal,
+preservation of unrelated xattrs and both entitlements, repeated preparation,
+tampering, symlink rejection, mismatched versions, network entitlements, missing
+and additional extensions. Tests never register their temporary apps, reset Quick
+Look, or change the installed copy. JSON results are written to
+`.build/test-results/Distribution-Validation.json`.
+
+Both CI and the release workflow run these tests. The release workflow additionally
+creates/validates a DMG and checks archive hashes. Packaging/registration success
+is not proof of another Mac's Gatekeeper acceptance or Finder extension activation.
+A fresh-machine download/quarantine/enablement test remains necessary; do not label
+an ad-hoc artifact notarized. Use `install-app.sh --check-only` for non-mutating
+installation diagnostics and `--prepare-only` for isolated preparation tests.

@@ -59,7 +59,26 @@
 
 ## 安装
 
-要求 **Apple Silicon、macOS 14 或更新版本，以及 Xcode**。当前源码预览版以源码构建为主：
+要求 **Apple Silicon、macOS 14 或更新版本**。
+
+**预编译安装包（对应 Release 提供时推荐）：** 从 [Releases](https://github.com/LujiaChen/PeekKit/releases)
+下载 `PeekKit-<版本>-arm64-adhoc.zip` 或 `.dmg` 及同次发布的 `SHA256SUMS.txt`。
+核对 SHA-256 后，将 **PeekKit.app** 拖入“应用程序”。在解压目录或挂载磁盘中打开终端，运行：
+
+```sh
+bash ./install-app.sh --allow-quarantine-removal
+```
+
+这个参数表示你已核对并决定信任下载。工具先检查签名、版本和两项扩展的沙盒权限，再仅清除
+PeekKit 的隔离标记，保留其他扩展属性；随后注册扩展、刷新 Quick Look。打开 PeekKit 一次，
+在系统设置中启用 **PeekKit Folder** 与 **PeekKit Markdown**。一般无需重签，排障时可加
+`--resign`，按扩展、主程序的顺序签名并保留权限。
+
+安装包是**临时签名（ad-hoc），没有 Developer ID 签名或 Apple 公证**。移除隔离标记是对本应用
+的信任决定，不代表 Apple 审核或保证每台 Mac 都能启用。不会关闭系统级安全保护。
+[完整安装、校验与排障步骤](docs/INSTALL.md)。
+
+**源码构建：** 需要 Xcode，无需付费开发者账户或额外下载依赖。
 
 ```sh
 git clone https://github.com/LujiaChen/PeekKit.git
@@ -67,9 +86,9 @@ cd PeekKit
 ./build.sh
 ```
 
-将 `.build/PeekKit.app` 放进“应用程序”，打开一次，并启用 Quick Look 中的 **PeekKit Folder** 和 **PeekKit Markdown**。在 Finder 选中文件夹或 Markdown，按空格；点击 **Analysis** 展开统计。
-
-默认构建使用临时签名。本次不提供经过 Developer ID 签名和公证的安装包，其他 Mac 上的安装和扩展启用仍需验证。详见[安装及排障说明](docs/INSTALL.md)。
+将 `.build/PeekKit.app` 放入“应用程序”，打开一次并启用两项扩展。旧的纯源码 Release 保持不变；
+新的[标签发布工作流](.github/workflows/release.yml)为后续版本生成 ZIP、DMG、源码 ZIP 和校验文件，
+不会自动改写旧版 Release。在 Finder 选中文件夹或 Markdown，按空格；点击 **Analysis** 展开统计。
 
 ## 统计范围与限制
 

@@ -62,3 +62,38 @@ FileBackedPDF pins local PDF descriptors; PDFContent owns the native viewer/navi
 ## 1.3.2 lifecycle and native Markdown
 
 PDFContent preserves its PDFView/document identity across unrelated SwiftUI updates. `show(nil)` also clears a deferred descriptor lease before view loading. Native Markdown uses a viewport-sized NSTextView and normalized AppKit table cells; semantic body colors are restored after HTML import so the hosted view controls light/dark text colors. The offline sanitization, input caps and CSP remain unchanged. See [1.3.2 validation](VALIDATION-1.3.2.md).
+
+## Credential-free release packaging
+
+`Tools/package-adhoc.sh` is separate from the credentialed notarization path above:
+
+```sh
+./build.sh
+./Tests/distribution.sh .build/PeekKit.app
+./Tools/package-adhoc.sh .build/PeekKit.app .build/release
+```
+
+Use a clean, committed checkout and a newly built app; the packager refuses dirty
+source or an existing output directory. It verifies arm64, matching app/extension
+versions, signatures and sandbox entitlements; packages with native ditto/hdiutil;
+verifies the DMG; creates a source ZIP from HEAD; and checks SHA-256 digests. ZIP
+and DMG include the app, installation helper and verifier, instructions and notices.
+The manifest lists all three archives. They are ad-hoc signed, not notarized.
+
+`.github/workflows/release.yml` uses the standard `macos-15` arm64 runner and its
+selected Xcode SDK; the deployment target remains macOS 14. It runs the full
+regression suite before packaging. Pull requests affecting packaging and manual
+workflow runs build/upload test artifacts **without publishing**. Pushing a new
+`vMAJOR.MINOR.PATCH` tag whose version matches all three bundle plists builds and
+publishes assets using GitHub's token, without Apple credentials. Update version
+and build numbers and validate Finder behavior before tagging. CI does not prove
+Finder integration. SHA-pinned actions and read-only checkout credentials are used;
+only the separate publication job has contents-write permission.
+
+An existing Release retains its notes/draft/prerelease status; assets are uploaded
+without clobbering. For a new tag, a draft with generated notes and an explicit
+ad-hoc/notarization notice is published as stable only after all uploads succeed.
+Re-running against an already uploaded
+asset fails rather than overwriting it. Existing tags/releases are not modified by
+merging the workflow. GitHub repository Actions/write-token policy can prevent
+publication; the packaging job's downloadable artifacts remain available.

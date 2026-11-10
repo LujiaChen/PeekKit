@@ -61,7 +61,26 @@ The screenshots above document 1.1.0. New 1.2.0 screenshots and validation notes
 
 ## Get started
 
-Requires **Apple Silicon and macOS 14 or later**. For this source release, build locally using Xcode, move the resulting app to Applications, then enable **PeekKit Folder** and **PeekKit Markdown** in Quick Look extensions.
+Requires **Apple Silicon and macOS 14 or later**.
+
+**Pre-built app (when offered):** download `PeekKit-<version>-arm64-adhoc.zip`
+or `.dmg` and `SHA256SUMS.txt` from [Releases](https://github.com/LujiaChen/PeekKit/releases).
+Verify the checksum, copy **PeekKit.app** to Applications, then open Terminal in
+the extracted folder/mounted disk and run:
+
+```sh
+bash ./install-app.sh --allow-quarantine-removal
+```
+
+This explicitly trusts the download and removes **only PeekKit's** quarantine
+attributes after checking its signature and both extensions. It registers the
+extensions and refreshes Quick Look; enable **PeekKit Folder** and **PeekKit
+Markdown** in System Settings afterward. Re-signing is optional (`--resign`),
+inside-out, and preserves entitlements. The app is **ad-hoc signed, not Developer
+ID signed or Apple notarized**; acceptance on every Mac is not guaranteed.
+[Full installation, checksums and troubleshooting →](docs/INSTALL.md)
+
+**Build from source:** requires Xcode; no paid account or package downloads.
 
 ```sh
 git clone https://github.com/LujiaChen/PeekKit.git
@@ -69,7 +88,10 @@ cd PeekKit
 ./build.sh
 ```
 
-The app is written to `.build/PeekKit.app`. The default build uses ad-hoc signing. A Developer ID–signed, notarized download is not provided in this source release; installation/extension behavior on another Mac still needs validation. [Installation and troubleshooting →](docs/INSTALL.md)
+Move `.build/PeekKit.app` to Applications, open it once and enable both extensions.
+Older source-only releases remain available. The [tag release workflow](.github/workflows/release.yml)
+creates ZIP, DMG, source ZIP and SHA-256 assets for future version tags; it does
+not retrofit existing releases. No global macOS security settings are changed.
 
 In Finder, select a folder or Markdown file and press **Space**. Click **Analysis** to expand file types, largest files, and scope details.
 

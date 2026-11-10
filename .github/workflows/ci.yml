@@ -32,3 +32,5 @@ jobs:
         run: ./Tests/content.sh
       - name: Renderer and lifecycle checks
         run: ./Tools/test-renderer.sh
+      - name: Installation helper and distribution security checks
+        run: ./Tests/distribution.sh .build/PeekKit.app
